@@ -46,7 +46,7 @@
     <link name="link6">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <mass value="0.1" />
+        <mass value="1.0" />
         <inertia ixx="1e-2" iyy="1e-2" izz="1e-2" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <visual>

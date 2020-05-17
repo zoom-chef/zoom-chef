@@ -23,8 +23,8 @@ constexpr const char *world_file = "./resources/world_panda_gripper.urdf";
 constexpr const char *robot_name = "panda_arm_hand";
 constexpr const char *camera_name = "camera_fixed";
 constexpr const char *SIM_TITLE = "SAI2.0 Example - Simple Panda";
-const string spatula_file = "./resources/spatula.urdf";
-const string spatula_name = "spatula"; 
+constexpr const char *spatula_file = "./resources/spatula.urdf";
+constexpr const char *spatula_name = "spatula"; 
 
 RedisClient redis_client;
 bool fSimulationRunning = false;
@@ -84,12 +84,12 @@ int main(int argc, char **argv)
 	Eigen::Vector3d world_gravity = sim->_world->getGravity().eigen();
 	auto robot = new Sai2Model::Sai2Model(ROBOT_FILE, false, sim->getRobotBaseTransform(robot_name), world_gravity);
 
-	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
+	auto spatula = new Sai2Model::Sai2Model(spatula_file, false, sim->getRobotBaseTransform(spatula_name), world_gravity);
 	spatula->updateModel();
-
 	sim->setJointPositions(spatula_name, spatula->_q);
-
-	sim->getJointPositions(robot_name, robot->_q);
+	
+	// sim->getJointPositions(robot_name, robot->_q);
+	sim->setJointPositions(robot_name, robot->_q);
 	robot->updateModel();
 
 	// initialize GLFW window
@@ -271,7 +271,7 @@ void simulation(Sai2Model::Sai2Model *robot, Sai2Model::Sai2Model* spatula, Simu
 		// read robot state and update redis
 		sim->getJointPositions(robot_name, robot->_q);
 		sim->getJointVelocities(robot_name, robot->_dq);
-		robot->updateKinematics();
+		robot->updateModel();
 		spatula->updateModel();
 
 		redis_client.setEigenMatrixJSON(SIM_JOINT_ANGLES_KEY, robot->_q);
