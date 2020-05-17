@@ -68,7 +68,5 @@ set(CS225A_COMMON_LIBRARIES
 
 set (CS225A_BINARY_DIR                  ${PROJECT_SOURCE_DIR}/bin)
 
-add_subdirectory(lecture2_demo)
-add_subdirectory(collision_demo)
-add_subdirectory(project_starter_code)
+add_subdirectory(zoom-chef)
 

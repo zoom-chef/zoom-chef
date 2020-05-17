@@ -128,108 +128,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named simviz
+# Target rules for targets named simviz_zoom_chef
 
 # Build rule for target.
-simviz: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 simviz
-.PHONY : simviz
+simviz_zoom_chef: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 simviz_zoom_chef
+.PHONY : simviz_zoom_chef
 
 # fast build rule for target.
-simviz/fast:
-	$(MAKE) -f lecture2_demo/CMakeFiles/simviz.dir/build.make lecture2_demo/CMakeFiles/simviz.dir/build
-.PHONY : simviz/fast
+simviz_zoom_chef/fast:
+	$(MAKE) -f zoom-chef/CMakeFiles/simviz_zoom_chef.dir/build.make zoom-chef/CMakeFiles/simviz_zoom_chef.dir/build
+.PHONY : simviz_zoom_chef/fast
 
 #=============================================================================
-# Target rules for targets named simulation
+# Target rules for targets named controller_zoom_chef
 
 # Build rule for target.
-simulation: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 simulation
-.PHONY : simulation
+controller_zoom_chef: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 controller_zoom_chef
+.PHONY : controller_zoom_chef
 
 # fast build rule for target.
-simulation/fast:
-	$(MAKE) -f lecture2_demo/CMakeFiles/simulation.dir/build.make lecture2_demo/CMakeFiles/simulation.dir/build
-.PHONY : simulation/fast
-
-#=============================================================================
-# Target rules for targets named controller
-
-# Build rule for target.
-controller: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 controller
-.PHONY : controller
-
-# fast build rule for target.
-controller/fast:
-	$(MAKE) -f lecture2_demo/CMakeFiles/controller.dir/build.make lecture2_demo/CMakeFiles/controller.dir/build
-.PHONY : controller/fast
-
-#=============================================================================
-# Target rules for targets named visualization
-
-# Build rule for target.
-visualization: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 visualization
-.PHONY : visualization
-
-# fast build rule for target.
-visualization/fast:
-	$(MAKE) -f lecture2_demo/CMakeFiles/visualization.dir/build.make lecture2_demo/CMakeFiles/visualization.dir/build
-.PHONY : visualization/fast
-
-#=============================================================================
-# Target rules for targets named controller_demo
-
-# Build rule for target.
-controller_demo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 controller_demo
-.PHONY : controller_demo
-
-# fast build rule for target.
-controller_demo/fast:
-	$(MAKE) -f collision_demo/CMakeFiles/controller_demo.dir/build.make collision_demo/CMakeFiles/controller_demo.dir/build
-.PHONY : controller_demo/fast
-
-#=============================================================================
-# Target rules for targets named simviz_demo
-
-# Build rule for target.
-simviz_demo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 simviz_demo
-.PHONY : simviz_demo
-
-# fast build rule for target.
-simviz_demo/fast:
-	$(MAKE) -f collision_demo/CMakeFiles/simviz_demo.dir/build.make collision_demo/CMakeFiles/simviz_demo.dir/build
-.PHONY : simviz_demo/fast
-
-#=============================================================================
-# Target rules for targets named simviz_project
-
-# Build rule for target.
-simviz_project: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 simviz_project
-.PHONY : simviz_project
-
-# fast build rule for target.
-simviz_project/fast:
-	$(MAKE) -f project_starter_code/CMakeFiles/simviz_project.dir/build.make project_starter_code/CMakeFiles/simviz_project.dir/build
-.PHONY : simviz_project/fast
-
-#=============================================================================
-# Target rules for targets named controller_project
-
-# Build rule for target.
-controller_project: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 controller_project
-.PHONY : controller_project
-
-# fast build rule for target.
-controller_project/fast:
-	$(MAKE) -f project_starter_code/CMakeFiles/controller_project.dir/build.make project_starter_code/CMakeFiles/controller_project.dir/build
-.PHONY : controller_project/fast
+controller_zoom_chef/fast:
+	$(MAKE) -f zoom-chef/CMakeFiles/controller_zoom_chef.dir/build.make zoom-chef/CMakeFiles/controller_zoom_chef.dir/build
+.PHONY : controller_zoom_chef/fast
 
 # Help Target
 help:
@@ -239,14 +161,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... controller"
-	@echo "... controller_demo"
-	@echo "... controller_project"
-	@echo "... simulation"
-	@echo "... simviz"
-	@echo "... simviz_demo"
-	@echo "... simviz_project"
-	@echo "... visualization"
+	@echo "... controller_zoom_chef"
+	@echo "... simviz_zoom_chef"
 .PHONY : help
 
 

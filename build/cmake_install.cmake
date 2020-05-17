@@ -34,9 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/clyako/Desktop/sai2/apps/zoom-chef/build/lecture2_demo/cmake_install.cmake")
-  include("/Users/clyako/Desktop/sai2/apps/zoom-chef/build/collision_demo/cmake_install.cmake")
-  include("/Users/clyako/Desktop/sai2/apps/zoom-chef/build/project_starter_code/cmake_install.cmake")
+  include("/Users/clyako/Desktop/sai2/apps/zoom-chef/build/zoom-chef/cmake_install.cmake")
 
 endif()
 
