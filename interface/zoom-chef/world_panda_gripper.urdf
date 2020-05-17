@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+
+<world name="demo_world" gravity="0.0 0.0 -9.81">
+
+	<robot name="panda_arm_hand">
+		<model dir="./resources/" path="panda_arm_hand.urdf" name="panda_arm_hand" />
+	</robot>
+
+	<robot name="spatula">
+		<model dir="./resources/" path="spatula.urdf" name="spatula"/>
+		<origin xyz="0.5 -0.5 1.0" rpy="0 0 1.57" />
+	</robot>
+
+	<static_object name="Ground_With_Texture">
+		<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0.0 0.0 -0.0001" rpy="0 0 0" />
+	        <geometry>
+	            <box size="100 100 0.0002" />
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/test_objects/meshes/visual/ground.obj" scale="1.0 1.0 1.0"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Countertop">
+		<origin xyz="0.8128 0.5 0.0" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Countertop.obj" scale="1.0 1.0 1.0"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Countertop.obj" scale="1.0 1.0 1.0"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Plate">
+		<origin xyz="0.7 0.5 0.458" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Plate.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Plate.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Stove">
+		<origin xyz="0.8128 0.5 -0.152" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	        <color rgba="0 0 0 1"/>
+	    </visual>
+	</static_object>
+
+	<static_object name="CuttingBoard">
+		<origin xyz="-0.5 0.5 0.458" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Cutting_Board.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Cutting_Board.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Knob_One">
+		<origin xyz="0.38 0.363 0.47" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Knob_Two">
+		<origin xyz="0.38 0.4519 0.47" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Knob_Three">
+		<origin xyz="0.38 0.5408 0.47" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<static_object name="Knob_Four">
+		<origin xyz="0.38 0.6297 0.47" rpy="0 0 0" />
+		<collision>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </collision>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove_Knob.obj" scale="0.001 0.001 0.001"/>
+	        </geometry>
+	    </visual>
+	</static_object>
+
+	<light name="light1" type="directional">
+		<position xyz="2.0 2.0 2.0" />
+		<lookat xyz="0.0 0.0 0.0" />
+	</light>
+
+	<light name="light2" type="directional">
+		<position xyz="-2.0 -2.0 2.0" />
+		<lookat xyz="0.0 0.0 0.0" />
+	</light>
+
+	<camera name="camera_fixed">
+		<position xyz="2.0 -0.8 1.0" />
+		<vertical xyz="0.0 0.0 1.0" />
+		<lookat xyz="0.0 0.0 0.5" />
+	</camera>
+
+</world>

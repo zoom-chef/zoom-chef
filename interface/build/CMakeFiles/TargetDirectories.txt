@@ -1,0 +1,6 @@
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/CMakeFiles/rebuild_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/CMakeFiles/edit_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/00-simple_panda/CMakeFiles/rebuild_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/00-simple_panda/CMakeFiles/edit_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/00-simple_panda/CMakeFiles/simviz00.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/interface/build/00-simple_panda/CMakeFiles/controller00.dir

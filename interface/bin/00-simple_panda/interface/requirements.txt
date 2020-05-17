@@ -1,0 +1,12 @@
+click
+redis
+hiredis
+eventlet
+flask
+flask-socketio
+multitimer
+matplotlib
+
+# if using periodic_timer (linux only)
+# uncomment following dependency
+#linuxfd
