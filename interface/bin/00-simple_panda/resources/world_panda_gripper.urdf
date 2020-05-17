@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<world name="demo_world" gravity="0.0 0.0 -9.81">
+<world name="demo_world" gravity="0.0 0.0 0.0">
 
 	<robot name="panda_arm_hand">
 		<model dir="./resources/" path="panda_arm_hand.urdf" name="panda_arm_hand" />

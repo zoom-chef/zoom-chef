@@ -82,6 +82,7 @@ int main(int argc, char **argv)
 
 	// load robots
 	Eigen::Vector3d world_gravity = sim->_world->getGravity().eigen();
+	cout << world_gravity << endl;
 	auto robot = new Sai2Model::Sai2Model(ROBOT_FILE, false, sim->getRobotBaseTransform(robot_name), world_gravity);
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false, sim->getRobotBaseTransform(spatula_name), world_gravity);
@@ -255,6 +256,9 @@ void simulation(Sai2Model::Sai2Model *robot, Sai2Model::Sai2Model* spatula, Simu
 
 		// read command torques from redis and apply to simulation
 		command_torques = redis_client.getEigenMatrixJSON(SIM_JOINT_TORQUES_COMMANDED_KEY);
+		Eigen::VectorXd g = Eigen::VectorXd::Zero(dof);
+		robot->gravityVector(g);
+		// command_torques += g;
 		sim->setJointTorques(robot_name, command_torques);
 
 		ui_force_widget->getUIForce(ui_force);
@@ -273,6 +277,9 @@ void simulation(Sai2Model::Sai2Model *robot, Sai2Model::Sai2Model* spatula, Simu
 		sim->getJointVelocities(robot_name, robot->_dq);
 		robot->updateModel();
 		spatula->updateModel();
+		Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+		spatula->positionInWorld(pos, "link6");
+		// cout << pos << endl << endl;
 
 		redis_client.setEigenMatrixJSON(SIM_JOINT_ANGLES_KEY, robot->_q);
 		redis_client.setEigenMatrixJSON(SIM_JOINT_VELOCITIES_KEY, robot->_dq);
