@@ -31,7 +31,7 @@ const string spatula_name = "spatula";
 // - write:
 const std::string JOINT_ANGLES_KEY = "sai2::cs225a::project::sensors::q";
 const std::string JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
-const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r";
+const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
 // - read
 const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 
@@ -98,10 +98,7 @@ int main() {
 	// get position and orientation of spatula from sim
 	sim->setJointPositions(spatula_name, spatula->_q);
 	Eigen::Vector3d r_spatula;
-	Eigen::Quaterniond quat_spatula;
-	//spatula->positionInWorld(r_spatula, "link0", Vector3d(0, 0, 0));
-	//spatula->
-	sim->getObjectPosition(spatula_name, r_spatula, quat_spatula);
+	spatula->positionInWorld(r_spatula, "link0", Vector3d(0, 0, 0));
 
 	/*------- Set up visualization -------*/
 	// set up error callback
@@ -318,13 +315,13 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		robot->updateModel();
 
 		Eigen::Vector3d r_spatula;
-		Eigen::Quaterniond quat_spatula;
-		sim->getObjectPosition(spatula_name, r_spatula, quat_spatula);
+		spatula->positionInWorld(r_spatula, "link0", Vector3d(0, 0, 0));
 		spatula->updateModel();
 
 		// write new robot state to redis
 		redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q);
 		redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq);
+		redis_client.setEigenMatrixJSON(SPATULA_POSITION_KEY, r_spatula);
 
 		//update last time
 		last_time = curr_time;

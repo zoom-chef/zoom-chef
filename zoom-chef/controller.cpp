@@ -50,7 +50,7 @@ int main() {
 	JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 	JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 	// KEY FOR SPATULA POSITION
-	SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r";
+	SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
 
 	// start redis client
 	auto redis_client = RedisClient();
