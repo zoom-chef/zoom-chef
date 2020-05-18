@@ -19,6 +19,7 @@ using namespace std;
 using namespace Eigen;
 
 const string robot_file = "./resources/panda_arm_hand.urdf";
+const string spatula_file = "./resources/spatula.urdf";
 
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
@@ -30,6 +31,7 @@ int state = JOINT_CONTROLLER;
 std::string JOINT_ANGLES_KEY;
 std::string JOINT_VELOCITIES_KEY;
 std::string JOINT_TORQUES_SENSED_KEY;
+std::string SPATULA_POSITION_KEY;
 // - write
 std::string JOINT_TORQUES_COMMANDED_KEY;
 
@@ -47,6 +49,8 @@ int main() {
 	JOINT_ANGLES_KEY = "sai2::cs225a::project::sensors::q";
 	JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 	JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
+	// KEY FOR SPATULA POSITION
+	SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r";
 
 	// start redis client
 	auto redis_client = RedisClient();
@@ -62,6 +66,9 @@ int main() {
 	robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 	VectorXd initial_q = robot->_q;
 	robot->updateModel();
+	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
+	Vector3d r_spatula = Vector3d::Zero();
+	r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);	
 
 	// prepare controller
 	int dof = robot->dof();
