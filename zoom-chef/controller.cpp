@@ -23,9 +23,10 @@ const string spatula_file = "./resources/spatula.urdf";
 
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
+#define SPATULA_POS           2
 
-int state = JOINT_CONTROLLER;
-
+int state = POSORI_CONTROLLER;
+int task = SPATULA_POS;
 // redis keys:
 // - read:
 std::string JOINT_ANGLES_KEY;
@@ -106,8 +107,8 @@ int main() {
 	joint_task->_kv = 15.0;
 
 	VectorXd q_init_desired = initial_q;
-	q_init_desired << -30.0, -15.0, -15.0, -105.0, 0.0, 90.0, 45.0;
-	q_init_desired *= M_PI/180.0;
+	// q_init_desired << -30.0, -15.0, -15.0, -105.0, 0.0, 90.0, 45.0;
+	// q_init_desired *= M_PI/180.0;
 	joint_task->_desired_position = q_init_desired;
 
 	// create a timer
@@ -125,10 +126,12 @@ int main() {
 		// read robot state from redis
 		robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 		robot->_dq = redis_client.getEigenMatrixJSON(JOINT_VELOCITIES_KEY);
-
+		r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);
 		// update model
 		robot->updateModel();
-	
+		spatula->updateModel();
+		cout << "r_spatula" << endl << r_spatula.transpose() << endl;
+
 		if(state == JOINT_CONTROLLER)
 		{
 			// update task model and set hierarchy
@@ -160,7 +163,14 @@ int main() {
 			posori_task->updateTaskModel(N_prec);
 			N_prec = posori_task->_N;
 			joint_task->updateTaskModel(N_prec);
-
+			if(task == SPATULA_POS)
+			{
+				posori_task->reInitializeTask();
+				posori_task->_desired_position=r_spatula;
+				// go to spatula position (origin)
+				//posori_task->_desired_position = r_spatula;
+				//posori_task->_desired_orientation
+			}
 			// compute torques
 			posori_task->computeTorques(posori_task_torques);
 			joint_task->computeTorques(joint_task_torques);

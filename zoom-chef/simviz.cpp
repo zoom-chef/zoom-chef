@@ -7,7 +7,7 @@
 #include "timer/LoopTimer.h"
 
 #include <GLFW/glfw3.h> //must be loaded after loading opengl/glew
-
+#include <cmath>
 #include "uiforce/UIForceWidget.h"
 
 #include <iostream>
@@ -85,20 +85,30 @@ int main() {
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	spatula->updateModel();
+	spatula->updateKinematics();
 
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0);
 	sim->setCoeffFrictionStatic(0.6);
+	sim->setCoeffFrictionDynamic(0.6);
+
 
 	// read joint positions, velocities, update model
 	sim->getJointPositions(robot_name, robot->_q);
 	sim->getJointVelocities(robot_name, robot->_dq);
 	robot->updateKinematics();
 	// get position and orientation of spatula from sim
-	sim->setJointPositions(spatula_name, spatula->_q);
+	//set initial position of spatula in world
 	Eigen::Vector3d r_spatula;
-	spatula->positionInWorld(r_spatula, "link0", Vector3d(0, 0, 0));
+	//Eigen::VectorXd q_spatula_init(6);
+	//q_spatula_init << 0.458, 0.4, 0.5, 0.0, 0.0, -M_PI;
+	//sim->setJointPositions(spatula_name, q_spatula_init);
+	spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
+	Eigen::Vector3d spatula_offset;
+	//spatula_offset << 0.458, 0.4, 0.5;
+	r_spatula = r_spatula + spatula_offset;
+	spatula->updateModel();
 
 	/*------- Set up visualization -------*/
 	// set up error callback
@@ -287,6 +297,10 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 	Eigen::VectorXd ui_force_command_torques;
 	ui_force_command_torques.setZero();
 
+	Eigen::Vector3d r_spatula;
+	Eigen::Vector3d spatula_offset;
+	spatula_offset << 0.458-0.025, 0.4-0.1, 0.5+0.155;
+
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
 
@@ -314,8 +328,9 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		sim->getJointVelocities(robot_name, robot->_dq);
 		robot->updateModel();
 
-		Eigen::Vector3d r_spatula;
-		spatula->positionInWorld(r_spatula, "link0", Vector3d(0, 0, 0));
+
+		spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
+		r_spatula += spatula_offset;
 		spatula->updateModel();
 
 		// write new robot state to redis
