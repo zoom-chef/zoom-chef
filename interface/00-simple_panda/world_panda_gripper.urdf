@@ -8,7 +8,7 @@
 
 	<robot name="spatula">
 		<model dir="./resources/" path="spatula.urdf" name="spatula"/>
-		<origin xyz="0.5 -0.5 1.0" rpy="0 0 1.57" />
+		<origin xyz="0.5 0.5 0.458" rpy="0 0 -1.57" />
 	</robot>
 
 	<static_object name="Ground_With_Texture">
