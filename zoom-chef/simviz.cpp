@@ -21,8 +21,10 @@ using namespace std;
 using namespace Eigen;
 
 const string world_file = "./resources/world_panda_gripper.urdf";
-const string robot_file = "./resources/panda_arm_hand.urdf";
-const string robot_name = "panda_arm_hand";
+// const string robot_file = "./resources/panda_arm_hand.urdf";
+// const string robot_name = "panda_arm_hand";
+const string robot_file = "./resources/mmp_panda.urdf";
+const string robot_name = "mmp_panda";
 const string camera_name = "camera_fixed";
 const string spatula_file = "./resources/spatula.urdf";
 const string spatula_name = "spatula"; 
@@ -299,7 +301,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 
 	Eigen::Vector3d r_spatula;
 	Eigen::Vector3d spatula_offset;
-	spatula_offset << 0.458-0.025, 0.4-0.1, 0.5+0.155;
+	spatula_offset << 0.458+0.025, 0.4-0.13, 0.5+0.17;
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();

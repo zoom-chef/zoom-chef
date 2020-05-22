@@ -18,7 +18,10 @@ void sighandler(int sig)
 using namespace std;
 using namespace Eigen;
 
-const string robot_file = "./resources/panda_arm_hand.urdf";
+// regular panda + gripper
+// const string robot_file = "./resources/panda_arm_hand.urdf";
+// panda + mobile base + gripper
+const string robot_file = "./resources/mmp_panda.urdf";
 const string spatula_file = "./resources/spatula.urdf";
 
 #define JOINT_CONTROLLER      0
