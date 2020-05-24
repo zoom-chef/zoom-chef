@@ -286,8 +286,10 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 	// create a timer
 	LoopTimer timer;
 	timer.initializeTimer();
+	// For David's Laptop: slow_down_factor = 3
+	double slow_down_factor = 3;
 	timer.setLoopFrequency(1000); 
-	double last_time = timer.elapsedTime(); //secs
+	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;
 
 	// init variables
@@ -321,7 +323,8 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 			sim->setJointTorques(robot_name, command_torques + g);
 
 		// integrate forward
-		double curr_time = timer.elapsedTime();
+
+		double curr_time = timer.elapsedTime() / slow_down_factor;
 		double loop_dt = curr_time - last_time; 
 		sim->integrate(loop_dt);
 
@@ -344,7 +347,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		last_time = curr_time;
 	}
 
-	double end_time = timer.elapsedTime();
+	double end_time = timer.elapsedTime() / slow_down_factor;
 	std::cout << "\n";
 	std::cout << "Simulation Loop run time  : " << end_time << " seconds\n";
 	std::cout << "Simulation Loop updates   : " << timer.elapsedCycles() << "\n";
