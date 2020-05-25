@@ -70,6 +70,10 @@ int main() {
 	robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 	VectorXd initial_q = robot->_q;
 	robot->updateModel();
+	// from world urdf
+	Vector3d base_origin;
+	base_origin << 0.0, 0.0, 0.3414;
+
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
 	r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);	
@@ -133,7 +137,7 @@ int main() {
 		// update model
 		robot->updateModel();
 		spatula->updateModel();
-		cout << "r_spatula" << endl << r_spatula.transpose() << endl;
+		// cout << "r_spatula" << endl << r_spatula.transpose() << endl;
 
 		if(state == JOINT_CONTROLLER)
 		{
@@ -170,8 +174,8 @@ int main() {
 			{
 				posori_task->reInitializeTask();
 				posori_task->_desired_position=r_spatula;
-				// go to spatula position (origin)
-				//posori_task->_desired_position = r_spatula;
+				// go to spatula position
+				posori_task->_desired_position = r_spatula - base_origin;
 				//posori_task->_desired_orientation
 			}
 			// compute torques

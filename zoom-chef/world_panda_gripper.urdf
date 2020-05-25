@@ -4,7 +4,8 @@
 
 	<robot name="mmp_panda">
 		<model dir="./resources/" path="mmp_panda.urdf" name="mmp_panda" />
-		<origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+		<!-- elevated robot base above ground -->
+		<origin xyz="0.0 0.0 0.3414" rpy="0.0 0.0 0.0" />
 	</robot>
 
 	<robot name="spatula">
