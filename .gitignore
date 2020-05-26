@@ -1,4 +1,4 @@
-./bin/*
-./build/*
-*/CMakeCache.txt
-*/*/CMakeCache.txt
+/bin/*
+/build/*
+CMakeCache.txt
+/*/CMakeCache.txt
