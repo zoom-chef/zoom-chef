@@ -40,6 +40,8 @@ std::string JOINT_ANGLES_KEY;
 std::string JOINT_VELOCITIES_KEY;
 std::string JOINT_TORQUES_SENSED_KEY;
 std::string SPATULA_POSITION_KEY;
+std::string SPATULA_ORIENTATION_KEY;
+std::string SPATULA_JOINT_ANGLES_KEY;
 // - write
 std::string JOINT_TORQUES_COMMANDED_KEY;
 
@@ -59,6 +61,8 @@ int main() {
 	JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 	// KEY FOR SPATULA POSITION
 	SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
+	SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
+	SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 
 	// start redis client
 	auto redis_client = RedisClient();
@@ -77,10 +81,20 @@ int main() {
 	// from world urdf
 	Vector3d base_origin;
 	base_origin << 0.0, -0.05, 0.3514;
+	Vector3d spatula_handle_local;
+	spatula_handle_local << 0.17145, 0, 0.092964;
+	Matrix3d handle_rot_local;
+	handle_rot_local << 0.5, 0.0, -sqrt(3) / 2, 
+						0.0, 1.0, 0.0,
+						sqrt(3) / 2, 0.0, 0.5;
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
+	Matrix3d q_spatula = Matrix3d::Zero();
+	VectorXd spatula_q(6);
 	r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);	
+	q_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);	
+	spatula_q = redis_client.getEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY);	
 
 	// prepare controller
 	int dof = robot->dof();
@@ -136,6 +150,8 @@ int main() {
 		robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 		robot->_dq = redis_client.getEigenMatrixJSON(JOINT_VELOCITIES_KEY);
 		r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);
+		q_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);
+
 		// update model
 		robot->updateModel();
 		spatula->updateModel();
@@ -181,11 +197,14 @@ int main() {
 			joint_task->updateTaskModel(N_prec);
 			if(task == SPATULA_POS)
 			{
+				// cout << "Spatula Pos: " << r_spatula << endl << endl;
 				posori_task->reInitializeTask();
-				posori_task->_desired_position=r_spatula;
+				// want this to be spatula position + local vector * local to world rotation
+				posori_task->_desired_position = r_spatula - q_spatula.transpose() * spatula_handle_local;
+				// cout << "Handle Pos: " << r_spatula - q_spatula.transpose() * spatula_handle_local << endl << endl;
 				// go to spatula position
-				posori_task->_desired_position = r_spatula - base_origin;
-				//posori_task->_desired_orientation
+				// posori_task->_desired_position = r_spatula - base_origin;
+				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
 			}
 			// compute torques
 			posori_task->computeTorques(posori_task_torques);

@@ -1,0 +1,6 @@
+/Users/clyako/Desktop/sai2/apps/zoom-chef/CMakeFiles/rebuild_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/CMakeFiles/edit_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/zoom-chef/CMakeFiles/rebuild_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/zoom-chef/CMakeFiles/edit_cache.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/zoom-chef/CMakeFiles/simviz_zoom_chef.dir
+/Users/clyako/Desktop/sai2/apps/zoom-chef/zoom-chef/CMakeFiles/controller_zoom_chef.dir

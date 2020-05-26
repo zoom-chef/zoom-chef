@@ -14,7 +14,7 @@ FILE(COPY 00-simple_panda.html DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 # NOTE: this requires an install build
 SET(APP_RESOURCE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 FILE(MAKE_DIRECTORY ${APP_RESOURCE_DIR})
-FILE(COPY world_panda_gripper.urdf panda_arm_hand.urdf spatula.urdf DESTINATION ${APP_RESOURCE_DIR})
+FILE(COPY world_panda_gripper.urdf panda_arm_hand.urdf spatula.urdf mmp_panda.urdf DESTINATION ${APP_RESOURCE_DIR})
 
 # copy in sai2-interfaces 
 FILE(COPY ${SAI2-INTERFACES_UI_DIR} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

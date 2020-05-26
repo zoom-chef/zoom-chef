@@ -34,6 +34,8 @@ const string spatula_name = "spatula";
 const std::string JOINT_ANGLES_KEY = "sai2::cs225a::project::sensors::q";
 const std::string JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
+const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
+const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 // - read
 const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 
@@ -103,10 +105,11 @@ int main() {
 	// get position and orientation of spatula from sim
 	//set initial position of spatula in world
 	Eigen::Vector3d r_spatula;
-	//Eigen::VectorXd q_spatula_init(6);
+	Eigen::Matrix3d q_spatula;
 	//q_spatula_init << 0.458, 0.4, 0.5, 0.0, 0.0, -M_PI;
 	//sim->setJointPositions(spatula_name, q_spatula_init);
 	spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
+	spatula->rotationInWorld(q_spatula, "link6");
 	Eigen::Vector3d spatula_offset;
 	//spatula_offset << 0.458, 0.4, 0.5;
 	r_spatula = r_spatula + spatula_offset;
@@ -154,6 +157,11 @@ int main() {
 	glewInitialize();
 
 	fSimulationRunning = true;
+
+	redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q); 
+	redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq); 
+	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q); 
+
 	thread sim_thread(simulation, robot, spatula, sim, ui_force_widget);
 	
 	// while window is open:
@@ -302,8 +310,15 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 	ui_force_command_torques.setZero();
 
 	Eigen::Vector3d r_spatula;
+	Eigen::Matrix3d q_spatula_local;
+	Eigen::Matrix3d q_spatula;
 	Eigen::Vector3d spatula_offset;
-	spatula_offset << 0.458+0.025, 0.4-0.13, 0.5+0.17;
+	// spatula_offset << 0.458 + 0.025, 0.4 - 0.13, 0.5 + 0.17;
+	spatula_offset << 0.5, 0.4, 0.458;
+	Matrix3d spatula_rot_init;
+	spatula_rot_init << 0.0, 1.0, 0.0, 
+						-1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0;
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
@@ -334,14 +349,18 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		robot->updateModel();
 
 
-		spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
+		spatula->positionInWorld(r_spatula, "link6");
+		spatula->rotationInWorld(q_spatula_local, "link6");
 		r_spatula += spatula_offset;
+		q_spatula = q_spatula_local * spatula_rot_init;
 		spatula->updateModel();
 
 		// write new robot state to redis
 		redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q);
 		redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq);
 		redis_client.setEigenMatrixJSON(SPATULA_POSITION_KEY, r_spatula);
+		redis_client.setEigenMatrixJSON(SPATULA_ORIENTATION_KEY, q_spatula);
+		redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q);
 
 		//update last time
 		last_time = curr_time;
