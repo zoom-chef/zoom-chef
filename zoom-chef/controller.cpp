@@ -27,9 +27,13 @@ const string spatula_file = "./resources/spatula.urdf";
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
 #define SPATULA_POS           2
+#define STATION_1             1
+#define STATION_2             2
+#define STATION_3             3
 
-int state = POSORI_CONTROLLER;
+int state = JOINT_CONTROLLER;
 int task = SPATULA_POS;
+int station = STATION_3;
 // redis keys:
 // - read:
 std::string JOINT_ANGLES_KEY;
@@ -72,7 +76,7 @@ int main() {
 	robot->updateModel();
 	// from world urdf
 	Vector3d base_origin;
-	base_origin << 0.0, 0.0, 0.3414;
+	base_origin << 0.0, -0.05, 0.3514;
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
@@ -114,8 +118,6 @@ int main() {
 	joint_task->_kv = 15.0;
 
 	VectorXd q_init_desired = initial_q;
-	// q_init_desired << -30.0, -15.0, -15.0, -105.0, 0.0, 90.0, 45.0;
-	// q_init_desired *= M_PI/180.0;
 	joint_task->_desired_position = q_init_desired;
 
 	// create a timer
@@ -137,13 +139,20 @@ int main() {
 		// update model
 		robot->updateModel();
 		spatula->updateModel();
-		// cout << "r_spatula" << endl << r_spatula.transpose() << endl;
 
 		if(state == JOINT_CONTROLLER)
 		{
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
+
+			if(station == STATION_3)
+			{
+				q_init_desired(0) = 0.3514;
+
+			}
+
+			joint_task->_desired_position = q_init_desired;
 
 			// compute torques
 			joint_task->computeTorques(joint_task_torques);

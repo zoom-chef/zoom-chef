@@ -91,7 +91,7 @@ int main() {
 
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
-	sim->setCollisionRestitution(0);
+	sim->setCollisionRestitution(1);
 	sim->setCoeffFrictionStatic(0.6);
 	sim->setCoeffFrictionDynamic(0.6);
 
