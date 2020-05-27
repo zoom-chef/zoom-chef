@@ -202,7 +202,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="../../../zoom-chef/panda/meshes/visual/finger.obj"/>
+        <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"/>
       </geometry>
     </visual>
      <collision>
@@ -221,7 +221,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 3.14159265359" />
       <geometry>
-        <mesh filename="../../../zoom-chef/panda/meshes/visual/finger.obj"/>
+        <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"/>
       </geometry>
     </visual>
      <collision>

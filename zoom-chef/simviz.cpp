@@ -93,7 +93,7 @@ int main() {
 
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
-	sim->setCollisionRestitution(1);
+	sim->setCollisionRestitution(0.3);
 	sim->setCoeffFrictionStatic(0.6);
 	sim->setCoeffFrictionDynamic(0.6);
 
@@ -148,6 +148,7 @@ int main() {
 
 	// init click force widget 
 	auto ui_force_widget = new UIForceWidget(robot_name, robot, graphics);
+	// auto ui_force_widget = new UIForceWidget(spatula_name, spatula, graphics);
 	ui_force_widget->setEnable(false);
 
 	// cache variables
@@ -295,7 +296,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 3;
+	double slow_down_factor = 1;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;

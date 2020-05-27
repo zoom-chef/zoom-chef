@@ -97,7 +97,7 @@ int main() {
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
   	double finger_rest_pos = 0.02;
-	double finger_closed_pos = 0.005;
+	double finger_closed_pos = 0.005-0.003;
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
@@ -235,8 +235,8 @@ int main() {
 			}
 			if(gripper_state == CLOSED)
 			{
-				q_curr_desired(10) = finger_closed_pos;
-				q_curr_desired(11) = -finger_closed_pos;
+				q_curr_desired(10) = 0.001;
+				q_curr_desired(11) = -0.002;
 			}
 			joint_task->_desired_position = q_curr_desired;
 			// cout << joint_task->_desired_position << endl << endl;
