@@ -52,7 +52,8 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Spatula.obj" scale="1.0 1.0 1.0"/>
+          <!--<mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Spatula.obj" scale="1.0 1.0 1.0"/>-->
+          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/Spatula_concave.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
       <collision>

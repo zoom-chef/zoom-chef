@@ -23,10 +23,15 @@ using namespace Eigen;
 // panda + mobile base + gripper
 const string robot_file = "./resources/mmp_panda.urdf";
 const string spatula_file = "./resources/spatula.urdf";
-
+// states
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
-#define SPATULA_POS           2
+// tasks
+#define SPATULA_POS           0
+// gripper states
+#define OPEN                  0
+#define CLOSED                1
+// stations
 #define STATION_1             1
 #define STATION_2             2
 #define STATION_3             3
@@ -34,6 +39,7 @@ const string spatula_file = "./resources/spatula.urdf";
 int state = JOINT_CONTROLLER;
 int task = SPATULA_POS;
 int station = STATION_3;
+int gripper_state = OPEN;
 // redis keys:
 // - read:
 std::string JOINT_ANGLES_KEY;
@@ -77,7 +83,7 @@ int main() {
 	auto robot = new Sai2Model::Sai2Model(robot_file, false);
 	robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 	VectorXd initial_q = robot->_q;
-	cout << initial_q << endl << endl;
+	// cout << initial_q << endl << endl;
 	robot->updateModel();
 	// from world urdf
 	Vector3d base_origin;
@@ -91,6 +97,7 @@ int main() {
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
   	double finger_rest_pos = 0.02;
+	double finger_closed_pos = 0.005;
 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
@@ -159,27 +166,48 @@ int main() {
 		// update model
 		robot->updateModel();
 		spatula->updateModel();
+		
+		VectorXd q_curr_desired(12);
+		q_curr_desired = robot->_q;
+
+		Vector3d ee_pos;
+		robot->positionInWorld(ee_pos, control_link, control_point);
+		Matrix3d ee_rot;
+		robot->rotationInWorld(ee_rot, control_link);
 
 		if(state == JOINT_CONTROLLER)
 		{
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
-
 			if(station == STATION_3)
 			{
-				q_init_desired(0) = 0.3514;
-
+				q_curr_desired(0) = 0.3514;
 			}
-
-			joint_task->_desired_position = q_init_desired;
-
+			/*
+			else if(task == CLOSE_GRIPPER)
+			{
+				q_curr_desired(10) = finger_close_pos;
+				q_curr_desired(11) = -finger_close_pos;
+			}
+			*/
+			if(gripper_state == OPEN)
+			{
+				q_curr_desired(10) = finger_rest_pos;
+				q_curr_desired(11) = -finger_rest_pos;
+			}
+			if(gripper_state == CLOSED)
+			{
+				q_curr_desired(10) = finger_closed_pos;
+				q_curr_desired(11) = -finger_closed_pos;
+			}
+			joint_task->_desired_position = q_curr_desired;
 			// compute torques
 			joint_task->computeTorques(joint_task_torques);
 
 			command_torques = joint_task_torques;
 
-			if( (robot->_q - q_init_desired).norm() < 0.15 )
+			if( (robot->_q - q_curr_desired).norm() < 0.15 )
 			{
 				posori_task->reInitializeTask();
 				posori_task->_desired_position += Vector3d(-0.1,0.1,0.1);
@@ -199,12 +227,19 @@ int main() {
 			posori_task->updateTaskModel(N_prec);
 			// N_prec = posori_task->_N;
 			// joint_task->kp = 250.0;
-			VectorXd q_curr_desired(12);
-			q_curr_desired = robot->_q;
-			q_curr_desired(10) = finger_rest_pos;
-			q_curr_desired(11) = -finger_rest_pos;
+			
+			if(gripper_state == OPEN)
+			{
+				q_curr_desired(10) = finger_rest_pos;
+				q_curr_desired(11) = -finger_rest_pos;
+			}
+			if(gripper_state == CLOSED)
+			{
+				q_curr_desired(10) = finger_closed_pos;
+				q_curr_desired(11) = -finger_closed_pos;
+			}
 			joint_task->_desired_position = q_curr_desired;
-			cout << joint_task->_desired_position << endl << endl;
+			// cout << joint_task->_desired_position << endl << endl;
 			joint_task->updateTaskModel(posori_task->_N);
 			if(task == SPATULA_POS)
 			{
@@ -213,14 +248,35 @@ int main() {
 				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_local - base_offset;
 				// go to spatula position
 				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
+				
 			}
+			
 			// compute torques
 			posori_task->computeTorques(posori_task_torques);
 			joint_task->computeTorques(joint_task_torques);
 
 			command_torques = posori_task_torques + joint_task_torques;
+			
+			Vector3d delta_phi;
+			Matrix3d R_d;
+			R_d = posori_task->_desired_orientation;
+			delta_phi << -0.5*ee_rot.col(0).cross(R_d.col(0)) - 0.5*ee_rot.col(1).cross(R_d.col(1)) - 0.5*ee_rot.col(2).cross(R_d.col(2));
+			if((ee_pos - posori_task->_desired_position).norm() < 0.01 && delta_phi.norm() < 0.05)
+			{
+				if(task == SPATULA_POS)
+				{
+					gripper_state = CLOSED;					
+				}
+				state = JOINT_CONTROLLER;
+			}
 		}
 
+		if(controller_counter % 500 == 0)
+		{
+			cout << "gripper state = " << gripper_state << endl;
+			cout << "ee_pos = " << ee_pos.transpose() << endl;
+			cout << "ee_rot = " << endl << ee_rot << endl;
+		}
 		// send to redis
 		redis_client.setEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY, command_torques);
 
