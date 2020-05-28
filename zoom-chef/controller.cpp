@@ -103,7 +103,7 @@ int main() {
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
   	double finger_rest_pos = 0.02;
-	double finger_closed_pos = 0.0005;
+	double finger_closed_pos = 0.0002;
  
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
@@ -262,7 +262,7 @@ int main() {
 				// goal is to simply lift the spatula in the z-direction while keeping the same current orientation
 				posori_task->reInitializeTask();
 				Vector3d lift_height;
-				lift_height << 0.0, 0.0, 0.05;
+				lift_height << 0.0, 0.0, 0.03;
 				posori_task->_desired_position = r_spatula + lift_height;
 				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
 			}
