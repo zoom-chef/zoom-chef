@@ -10,24 +10,7 @@
 
 	<robot name="spatula">
 		<model dir="./resources/" path="spatula.urdf" name="spatula"/>
-		<origin xyz="0.5 0.4 0.458" rpy="0 0 -1.57" />
-		<!-- ___ -->
-		<collision>
-	        <!-- <origin xyz="0.5 0.15 0.1673;" rpy="0 0 0" /> -->
-	        <geometry>
-	        	<mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Spatula.obj" scale="1.0 1.0 1.0"/>
-	        	<!-- <box size="10.0 10.0 10.0" /> -->
-	        </geometry>
-	    </collision>
-	    <visual>
-	        <!-- <origin xyz="0.5 0.15 0.1673;" rpy="0 0 0" /> -->
-	        <geometry>
-	        	<mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Spatula.obj" scale="1.0 1.0 1.0"/>
-	        	<!-- <box size="10.0 10.0 10.0" /> -->
-	        </geometry>
-	    </visual>
-
-	    <!--___-->
+		<origin xyz="0.5 0.4 0.5" rpy="0 0 -1.57" />
 	</robot>
 
 	<static_object name="Ground_With_Texture">
@@ -55,14 +38,15 @@
 	    <collision>
 	        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
 	        <geometry>
-			<box size="1.0 1.0 0.458" />
+			<!-- <box size="1.0 1.0 0.458" /> -->
+				<mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Countertop.obj" scale="1.0 1.0 1.0"/>
 	        </geometry>
 	    </collision>
 	    <visual>
 	    	<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
 	        <geometry>
 	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Countertop.obj" scale="1.0 1.0 1.0"/>
-			<box size="1.0 1.0 0.458" />
+			<!-- <box size="1.0 1.0 0.458" /> -->
 	        </geometry>
 	    </visual>
 	</static_object>

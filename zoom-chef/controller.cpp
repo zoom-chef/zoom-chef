@@ -27,7 +27,9 @@ const string spatula_file = "./resources/spatula.urdf";
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
 // tasks
-#define SPATULA_POS           0
+#define SPATULA_PRE_POS       0
+#define SPATULA_GRASP_POS	  1
+#define LIFT_SPATULA		  2
 // gripper states
 #define OPEN                  0
 #define CLOSED                1
@@ -35,9 +37,11 @@ const string spatula_file = "./resources/spatula.urdf";
 #define STATION_1             1
 #define STATION_2             2
 #define STATION_3             3
+// print
+#define VERBOSE				  0
 
 int state = JOINT_CONTROLLER;
-int task = SPATULA_POS;
+int task = SPATULA_PRE_POS;
 int station = STATION_3;
 int gripper_state = OPEN;
 // redis keys:
@@ -88,8 +92,10 @@ int main() {
 	// from world urdf
 	Vector3d base_origin;
 	base_origin << 0.0, -0.05, 0.3514;
-	Vector3d spatula_handle_local;
-	spatula_handle_local << -0.25, 0, -0.015;
+	Vector3d spatula_handle_pre_grasp_local;
+	spatula_handle_pre_grasp_local << -0.35, 0, 0.1;
+	Vector3d spatula_handle_grasp_local;
+	spatula_handle_grasp_local << -0.25, 0, 0.02;
 	Vector3d base_offset;
 	base_offset << 0.0, 0.0, 0.1757;
 	Matrix3d handle_rot_local;
@@ -97,8 +103,8 @@ int main() {
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
   	double finger_rest_pos = 0.02;
-	double finger_closed_pos = 0.005-0.003;
-
+	double finger_closed_pos = 0.0005;
+ 
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
 	Matrix3d q_spatula = Matrix3d::Zero();
@@ -139,8 +145,8 @@ int main() {
 #endif
 
 	VectorXd joint_task_torques = VectorXd::Zero(dof);
-	joint_task->_kp = 250.0;
-	joint_task->_kv = 15.0;
+	joint_task->_kp = 300.0;
+	joint_task->_kv = 60.0;
 
 	VectorXd q_init_desired = initial_q;
 	joint_task->_desired_position = q_init_desired;
@@ -180,17 +186,12 @@ int main() {
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
+
 			if(station == STATION_3)
 			{
 				q_curr_desired(0) = 0.3514;
 			}
-			/*
-			else if(task == CLOSE_GRIPPER)
-			{
-				q_curr_desired(10) = finger_close_pos;
-				q_curr_desired(11) = -finger_close_pos;
-			}
-			*/
+
 			if(gripper_state == OPEN)
 			{
 				q_curr_desired(10) = finger_rest_pos;
@@ -209,14 +210,12 @@ int main() {
 
 			if( (robot->_q - q_curr_desired).norm() < 0.15 )
 			{
-				posori_task->reInitializeTask();
-				posori_task->_desired_position += Vector3d(-0.1,0.1,0.1);
-				posori_task->_desired_orientation = AngleAxisd(M_PI/6, Vector3d::UnitX()).toRotationMatrix() * posori_task->_desired_orientation;
-
-				// joint_task->reInitializeTask();
-				// joint_task->_kp = 0;
-
 				state = POSORI_CONTROLLER;
+				if (gripper_state == CLOSED) 
+				{
+					cout << "Lifting..." << endl << endl;
+					task = LIFT_SPATULA;
+				}
 			}
 		}
 
@@ -235,20 +234,37 @@ int main() {
 			}
 			if(gripper_state == CLOSED)
 			{
-				q_curr_desired(10) = 0.001;
-				q_curr_desired(11) = -0.002;
+				q_curr_desired(10) = finger_closed_pos;
+				q_curr_desired(11) = -finger_closed_pos;
 			}
 			joint_task->_desired_position = q_curr_desired;
-			// cout << joint_task->_desired_position << endl << endl;
 			joint_task->updateTaskModel(posori_task->_N);
-			if(task == SPATULA_POS)
+
+			if (task == SPATULA_PRE_POS)
 			{
+				// cout << "Pre" << endl << endl;
+				// need to maintain the finger position while moving to the spatula
 				posori_task->reInitializeTask();
 				// want this to be spatula position + local vector * local to world rotation
-				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_local - base_offset;
+				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_pre_grasp_local - base_offset;
 				// go to spatula position
 				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
-				
+			} else if (task == SPATULA_GRASP_POS) {
+				// cout << "Grasp" << endl << endl;
+				// need to maintain the finger position while moving to the spatula
+				posori_task->reInitializeTask();
+				// want this to be spatula position + local vector * local to world rotation
+				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_grasp_local - base_offset;
+				// go to spatula position
+				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
+			} else if (task == LIFT_SPATULA) {
+				// this state should be entered after closing the gripper
+				// goal is to simply lift the spatula in the z-direction while keeping the same current orientation
+				posori_task->reInitializeTask();
+				Vector3d lift_height;
+				lift_height << 0.0, 0.0, 0.05;
+				posori_task->_desired_position = r_spatula + lift_height;
+				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
 			}
 			
 			// compute torques
@@ -261,17 +277,27 @@ int main() {
 			Matrix3d R_d;
 			R_d = posori_task->_desired_orientation;
 			delta_phi << -0.5*ee_rot.col(0).cross(R_d.col(0)) - 0.5*ee_rot.col(1).cross(R_d.col(1)) - 0.5*ee_rot.col(2).cross(R_d.col(2));
-			if((ee_pos - posori_task->_desired_position).norm() < 0.01 && delta_phi.norm() < 0.05)
+
+			// if we have reached the desired position and orientation
+			if ((ee_pos - posori_task->_desired_position).norm() < 0.01 && delta_phi.norm() < 0.05)
 			{
-				if(task == SPATULA_POS)
+				// if we have moved into the pre-grasp position (essentially you position slightly away from the spatula to not contact it)
+				// else if we have moved to a position with the spatula handle between the jaws of the gripper
+				if (task == SPATULA_PRE_POS)
 				{
-					gripper_state = CLOSED;					
-				}
-				state = JOINT_CONTROLLER;
+					cout << "Moving to Grasp Position" << endl << endl;
+					// move inwards to the grasp position
+					task = SPATULA_GRASP_POS;					
+				} else if (task == SPATULA_GRASP_POS) {
+					cout << "Closing Gripper..." << endl << endl;
+					// if we are in the grasp position, go to a joint task and close the jaws
+					state = JOINT_CONTROLLER;
+					gripper_state = CLOSED;
+				} 
 			}
 		}
 
-		if(controller_counter % 500 == 0)
+		if(controller_counter % 5000 == 0 && VERBOSE)
 		{
 			cout << "gripper state = " << gripper_state << endl;
 			cout << "ee_pos = " << ee_pos.transpose() << endl;

@@ -94,8 +94,8 @@ int main() {
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0.3);
-	sim->setCoeffFrictionStatic(0.6);
-	sim->setCoeffFrictionDynamic(0.6);
+	sim->setCoeffFrictionStatic(0.8);
+	sim->setCoeffFrictionDynamic(0.8);
 
 
 	// read joint positions, velocities, update model
@@ -348,6 +348,11 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		sim->getJointPositions(robot_name, robot->_q);
 		sim->getJointVelocities(robot_name, robot->_dq);
 		robot->updateModel();
+
+		// update joint positions for the spatula
+		sim->getJointPositions(spatula_name, spatula->_q);
+		sim->getJointVelocities(spatula_name, spatula->_dq);
+		spatula->updateModel();
 
 
 		spatula->positionInWorld(r_spatula, "link6");
