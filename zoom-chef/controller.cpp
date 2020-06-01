@@ -27,22 +27,27 @@ const string spatula_file = "./resources/spatula.urdf";
 #define JOINT_CONTROLLER      0
 #define POSORI_CONTROLLER     1
 // tasks
-#define SPATULA_PRE_POS       0
-#define SPATULA_GRASP_POS	  1
-#define LIFT_SPATULA		  2
+#define IDLE                  0
+#define SPATULA_PRE_POS       1
+#define SPATULA_GRASP_POS	  2
+#define SLIDE		  		  3
+#define LIFT_SPATULA		  4
+#define DROP_FOOD			  5
+#define RELAX_WRIST			  6
+#define FLEX_WRIST			  7
 // gripper states
 #define OPEN                  0
 #define CLOSED                1
 // stations
 #define STATION_1             1
 #define STATION_2             2
-#define STATION_3             3
+
 // print
 #define VERBOSE				  0
 
 int state = JOINT_CONTROLLER;
 int task = SPATULA_PRE_POS;
-int station = STATION_3;
+int station = STATION_2;
 int gripper_state = OPEN;
 // redis keys:
 // - read:
@@ -103,7 +108,7 @@ int main() {
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
   	double finger_rest_pos = 0.02;
-	double finger_closed_pos = 0.0002;
+	double finger_closed_pos = -0.01;
  
 	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
@@ -158,6 +163,15 @@ int main() {
 	double start_time = timer.elapsedTime(); //secs
 	bool fTimerDidSleep = true;
 
+	Vector3d slide;
+	slide << 0.0, 0.15, 0.0;
+
+	Vector3d lift_height;
+	lift_height << 0.0, 0.0, 0.25;
+
+	Vector3d drop_food;
+	drop_food << 0.0, 0.0, -0.25+0.05;
+
 	while (runloop) {
 		// wait for next scheduled loop
 		timer.waitForNextLoop();
@@ -181,13 +195,17 @@ int main() {
 		Matrix3d ee_rot;
 		robot->rotationInWorld(ee_rot, control_link);
 
+
 		if(state == JOINT_CONTROLLER)
 		{
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
-
-			if(station == STATION_3)
+			if(station == STATION_1) {
+				q_curr_desired(0) = -0.3514;
+			}
+	
+			if(station == STATION_2)
 			{
 				q_curr_desired(0) = 0.3514;
 			}
@@ -202,6 +220,12 @@ int main() {
 				q_curr_desired(10) = finger_closed_pos;
 				q_curr_desired(11) = -finger_closed_pos;
 			}
+			if(task == RELAX_WRIST) {
+				q_curr_desired(9) = -M_PI/3;
+			}
+			// if (task == RELAX_WRIST) {
+			// 	q_curr_desired(7) -= M_PI/3;
+			// }
 			joint_task->_desired_position = q_curr_desired;
 			// compute torques
 			joint_task->computeTorques(joint_task_torques);
@@ -210,11 +234,26 @@ int main() {
 
 			if( (robot->_q - q_curr_desired).norm() < 0.15 )
 			{
-				state = POSORI_CONTROLLER;
-				if (gripper_state == CLOSED) 
+				if (task == SPATULA_PRE_POS) {
+					state = POSORI_CONTROLLER;
+				}
+				if (task == SPATULA_GRASP_POS) {
+					state = POSORI_CONTROLLER;
+					task = SLIDE;
+				}
+				if (station == STATION_1 && task == LIFT_SPATULA) {
+					state = POSORI_CONTROLLER;
+					cout << "Dropping food on grill..." << endl << endl;
+					task = DROP_FOOD;
+					posori_task->reInitializeTask();
+					posori_task->_desired_position += drop_food;
+				}
+				if (task == SLIDE) 
 				{
-					cout << "Lifting..." << endl << endl;
-					task = LIFT_SPATULA;
+					cout << "Sliding..." << endl << endl;
+					posori_task->reInitializeTask();
+					posori_task->_desired_position += slide;
+					
 				}
 			}
 		}
@@ -257,14 +296,12 @@ int main() {
 				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_grasp_local - base_offset;
 				// go to spatula position
 				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
-			} else if (task == LIFT_SPATULA) {
+			// } else if (task == SLIDE) {
+			} else if (task == DROP_FOOD) {
 				// this state should be entered after closing the gripper
 				// goal is to simply lift the spatula in the z-direction while keeping the same current orientation
-				posori_task->reInitializeTask();
-				Vector3d lift_height;
-				lift_height << 0.0, 0.0, 0.03;
-				posori_task->_desired_position = r_spatula + lift_height;
-				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
+				// posori_task->reInitializeTask();
+	
 			}
 			
 			// compute torques
@@ -273,13 +310,8 @@ int main() {
 
 			command_torques = posori_task_torques + joint_task_torques;
 			
-			Vector3d delta_phi;
-			Matrix3d R_d;
-			R_d = posori_task->_desired_orientation;
-			delta_phi << -0.5*ee_rot.col(0).cross(R_d.col(0)) - 0.5*ee_rot.col(1).cross(R_d.col(1)) - 0.5*ee_rot.col(2).cross(R_d.col(2));
-
 			// if we have reached the desired position and orientation
-			if ((ee_pos - posori_task->_desired_position).norm() < 0.01 && delta_phi.norm() < 0.05)
+			if(posori_task->goalPositionReached(0.01) && posori_task->goalOrientationReached(0.05))
 			{
 				// if we have moved into the pre-grasp position (essentially you position slightly away from the spatula to not contact it)
 				// else if we have moved to a position with the spatula handle between the jaws of the gripper
@@ -293,7 +325,28 @@ int main() {
 					// if we are in the grasp position, go to a joint task and close the jaws
 					state = JOINT_CONTROLLER;
 					gripper_state = CLOSED;
-				} 
+				} else if (task == SLIDE) {
+					// state = POSORI_CONTROLLER;
+					cout << "Lifting..." << endl << endl;
+					posori_task->reInitializeTask();
+					task =  LIFT_SPATULA;
+					posori_task->_desired_position +=lift_height;
+				} else if (task == LIFT_SPATULA) {
+					state = JOINT_CONTROLLER;
+					cout << "Changing station..." << endl << endl;
+					joint_task->reInitializeTask();
+					station = STATION_1;
+				}
+				// } else if (task == DROP_FOOD) {
+				// 	state = JOINT_CONTROLLER;
+				// }
+				else if (task == DROP_FOOD){
+					cout << "\t(Relaxing wrist...)" << endl << endl;
+					task = RELAX_WRIST;
+					// posori_task->reInitializeTask();
+					state = JOINT_CONTROLLER;
+				}
+
 			}
 		}
 
