@@ -68,24 +68,36 @@
 	    </visual>
 	</static_object>
 
-	<static_object name="Stove">
-		<origin xyz="0.8128 0.5 -0.152" rpy="0 0 0" />
-<!--
+	<static_object name="Grill">
+		<origin xyz="0.8128 0.5 0.0" rpy="0 0 0" />
+
 		<collision>
 	        <origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Stove.obj" scale="0.001 0.001 0.001"/>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/GrillBottom.obj" scale="1 1 1"/>
 	        </geometry>
 	    </collision>
--->
+
 	    <visual>
 	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Stove.obj" scale="0.001 0.001 0.001"/>
-	        </geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Grill.obj" scale="1 1 1"/>
+	        </geometry> 
 	        <color rgba="0 0 0 1"/>
 	    </visual>
 	</static_object>
+
+	<static_object name="GrillBack">
+		<origin xyz="0.8128 0.5 0.0" rpy="0 0 0" />
+	    <collision>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/GrillBack.obj" scale="1 1 1"/>
+	        </geometry>
+	        <color rgba="0 0 0 1"/>
+	    </collision>
+	</static_object>
+
 
 	<static_object name="CuttingBoard">
 		<origin xyz="-0.5 0.5 0.458" rpy="0 0 0" />
