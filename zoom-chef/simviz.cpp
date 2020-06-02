@@ -28,6 +28,8 @@ const string robot_name = "mmp_panda";
 const string camera_name = "camera_fixed";
 const string spatula_file = "./resources/spatula.urdf";
 const string spatula_name = "spatula"; 
+const string burger_file = "./resources/burger.urdf";
+const string burger_name = "burger"; 
 
 // redis keys:
 // - write:
@@ -36,13 +38,17 @@ const std::string JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
 const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
 const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
+const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::q_burger";
+const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::burger_q";
+const std::string BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
+
 // - read
 const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 
 RedisClient redis_client;
 
 // simulation function prototype
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
+void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2Model::Sai2Model* burger, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
 
 // callback to print glfw errors
 void glfwError(int error, const char* description);
@@ -91,6 +97,10 @@ int main() {
 	spatula->updateModel();
 	spatula->updateKinematics();
 
+	auto burger = new Sai2Model::Sai2Model(burger_file, false);
+	burger->updateModel();
+	burger->updateKinematics();
+
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0.1);
@@ -106,6 +116,10 @@ int main() {
 	//set initial position of spatula in world
 	Eigen::Vector3d r_spatula;
 	Eigen::Matrix3d q_spatula;
+	// get position and orientation of burger from sim
+	//set initial position of burger in world
+	Eigen::Vector3d r_burger;
+	Eigen::Matrix3d q_burger;
 	//q_spatula_init << 0.458, 0.4, 0.5, 0.0, 0.0, -M_PI;
 	//sim->setJointPositions(spatula_name, q_spatula_init);
 	spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
@@ -114,6 +128,13 @@ int main() {
 	//spatula_offset << 0.458, 0.4, 0.5;
 	r_spatula = r_spatula + spatula_offset;
 	spatula->updateModel();
+
+	burger->positionInWorld(r_burger, "link6", Vector3d(0, 0, 0));
+	burger->rotationInWorld(q_burger, "link6");
+	Eigen::Vector3d burger_offset;
+	//spatula_offset << 0.458, 0.4, 0.5;
+	r_burger = r_burger + burger_offset;
+	burger->updateModel();
 
 	/*------- Set up visualization -------*/
 	// set up error callback
@@ -148,7 +169,6 @@ int main() {
 
 	// init click force widget 
 	auto ui_force_widget = new UIForceWidget(robot_name, robot, graphics);
-	// auto ui_force_widget = new UIForceWidget(spatula_name, spatula, graphics);
 	ui_force_widget->setEnable(false);
 
 	// cache variables
@@ -163,7 +183,7 @@ int main() {
 	redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq); 
 	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q); 
 
-	thread sim_thread(simulation, robot, spatula, sim, ui_force_widget);
+	thread sim_thread(simulation, robot, spatula, burger, sim, ui_force_widget);
 	
 	// while window is open:
 	while (!glfwWindowShouldClose(window) && fSimulationRunning)
@@ -173,6 +193,7 @@ int main() {
 		glfwGetFramebufferSize(window, &width, &height);
 		graphics->updateGraphics(robot_name, robot);
 		graphics->updateGraphics(spatula_name, spatula);
+		graphics->updateGraphics(burger_name, burger);
 		graphics->render(camera_name, width, height);
 
 		// swap buffers
@@ -286,7 +307,7 @@ int main() {
 }
 
 //------------------------------------------------------------------------------
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
+void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2Model::Sai2Model* burger, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
 
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
@@ -319,6 +340,17 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 	Matrix3d spatula_rot_init;
 	spatula_rot_init << 0.0, 1.0, 0.0, 
 						-1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0;
+
+	Eigen::Vector3d r_burger;
+	Eigen::Matrix3d q_burger_local;
+	Eigen::Matrix3d q_burger;
+	Eigen::Vector3d burger_offset;
+	// spatula_offset << 0.458 + 0.025, 0.4 - 0.13, 0.5 + 0.17;
+	burger_offset << 0.5, 0.6, 0.5;
+	Matrix3d burger_rot_init;
+	burger_rot_init << 1.0, 0.0, 0.0, 
+						0.0, 1.0, 0.0,
 						0.0, 0.0, 1.0;
 
 	while (fSimulationRunning) {
@@ -354,12 +386,22 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		sim->getJointVelocities(spatula_name, spatula->_dq);
 		spatula->updateModel();
 
-
 		spatula->positionInWorld(r_spatula, "link6");
 		spatula->rotationInWorld(q_spatula_local, "link6");
 		r_spatula += spatula_offset;
 		q_spatula = q_spatula_local * spatula_rot_init;
 		spatula->updateModel();
+
+		// update joint positions for the spatula
+		sim->getJointPositions(burger_name, burger->_q);
+		sim->getJointVelocities(burger_name, burger->_dq);
+		burger->updateModel();
+
+		burger->positionInWorld(r_burger, "link6");
+		burger->rotationInWorld(q_burger_local, "link6");
+		r_burger += burger_offset;
+		q_burger = q_burger_local * burger_rot_init;
+		burger->updateModel();
 
 		// write new robot state to redis
 		redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q);
@@ -367,6 +409,9 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Simu
 		redis_client.setEigenMatrixJSON(SPATULA_POSITION_KEY, r_spatula);
 		redis_client.setEigenMatrixJSON(SPATULA_ORIENTATION_KEY, q_spatula);
 		redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q);
+		redis_client.setEigenMatrixJSON(BURGER_POSITION_KEY, r_burger);
+		redis_client.setEigenMatrixJSON(BURGER_ORIENTATION_KEY, q_burger);
+		redis_client.setEigenMatrixJSON(BURGER_JOINT_ANGLES_KEY, burger->_q);
 
 		//update last time
 		last_time = curr_time;

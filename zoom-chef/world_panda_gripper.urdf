@@ -13,6 +13,11 @@
 		<origin xyz="0.5 0.4 0.5" rpy="0 0 -1.57" />
 	</robot>
 
+	<robot name="burger">
+		<model dir="./resources/" path="burger.urdf" name="burger"/>
+		<origin xyz="0.5 0.6 0.5" rpy="0 0 -1.57" />
+	</robot>
+
 	<static_object name="Ground_With_Texture">
 		<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
 	    <collision>
