@@ -38,8 +38,8 @@ const std::string JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
 const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
 const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
-const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::q_burger";
-const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::burger_q";
+const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
+const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
 const std::string BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
 
 // - read
@@ -182,6 +182,7 @@ int main() {
 	redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q); 
 	redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq); 
 	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q); 
+	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, burger->_q); 
 
 	thread sim_thread(simulation, robot, spatula, burger, sim, ui_force_widget);
 	
@@ -317,7 +318,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 1;
+	double slow_down_factor = 2;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;
