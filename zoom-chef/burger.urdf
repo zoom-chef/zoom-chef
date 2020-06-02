@@ -52,14 +52,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <!--<mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Spatula.obj" scale="1.0 1.0 1.0"/>-->
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Burger.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/Burger.obj" scale="1.0 1.0 1.0"/>
+          <cylinder length="0.00846667" radius="0.08128"/>
         </geometry>
       </collision>
     </link>
