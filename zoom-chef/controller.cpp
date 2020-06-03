@@ -97,16 +97,24 @@ int main() {
 	// from world urdf
 	Vector3d base_origin;
 	base_origin << 0.0, -0.05, 0.3514;
+
 	Vector3d spatula_handle_pre_grasp_local;
 	spatula_handle_pre_grasp_local << -0.35, 0, 0.1;
+	// spatula_handle_pre_grasp_local << -0.4, 0, 0.27;
+
 	Vector3d spatula_handle_grasp_local;
-	spatula_handle_grasp_local << -0.25, 0, 0.02;
+	spatula_handle_grasp_local << -0.25, 0, 0.04;
+	// spatula_handle_grasp_local << -0.25, 0, 0.184;
+
 	Vector3d base_offset;
 	base_offset << 0.0, 0.0, 0.1757;
+	// base_offset << 0.0, -0.05, 0.3514;
+
 	Matrix3d handle_rot_local;
 	handle_rot_local << -0.3553997, -0.3516974,  0.8660254,
   						-0.7033947,  0.7107995,  0.0000000,
   						-0.6155704, -0.6091577, -0.5000000; 
+
   	double finger_rest_pos = 0.02;
 	double finger_closed_pos = -0.01;
  
@@ -150,8 +158,8 @@ int main() {
 #endif
 
 	VectorXd joint_task_torques = VectorXd::Zero(dof);
-	joint_task->_kp = 300.0;
-	joint_task->_kv = 60.0;
+	joint_task->_kp = 200.0;
+	joint_task->_kv = 40.0;
 
 	VectorXd q_init_desired = initial_q;
 	joint_task->_desired_position = q_init_desired;
@@ -164,7 +172,12 @@ int main() {
 	bool fTimerDidSleep = true;
 
 	Vector3d slide;
-	slide << 0.0, 0.15, 0.0;
+	slide << 0.0, 0.25, 0.0;
+	Matrix3d slide_ori;
+	double slide_angle = -5 * M_PI / 180.0;
+	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
+   					0.0000000, cos(slide_angle), -sin(slide_angle),
+   					0.0000000, sin(slide_angle), cos(slide_angle);
 
 	Vector3d lift_height;
 	lift_height << 0.0, 0.0, 0.25;
@@ -232,7 +245,7 @@ int main() {
 
 			command_torques = joint_task_torques;
 
-			if( (robot->_q - q_curr_desired).norm() < 0.15 )
+			if( (robot->_q - q_curr_desired).norm() < 0.05 )
 			{
 				if (task == SPATULA_PRE_POS) {
 					state = POSORI_CONTROLLER;
@@ -252,8 +265,10 @@ int main() {
 				{
 					cout << "Sliding..." << endl << endl;
 					posori_task->reInitializeTask();
+					posori_task->_use_velocity_saturation_flag = true;
+					posori_task->_linear_saturation_velocity = 0.1;
 					posori_task->_desired_position += slide;
-					
+					posori_task->_desired_orientation *= slide_ori ; 
 				}
 			}
 		}

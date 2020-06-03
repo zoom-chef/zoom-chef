@@ -104,8 +104,8 @@ int main() {
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0.1);
-	sim->setCoeffFrictionStatic(15.0);
-	sim->setCoeffFrictionDynamic(15.0);
+	sim->setCoeffFrictionStatic(0.8);
+	sim->setCoeffFrictionDynamic(0.9);
 
 
 	// read joint positions, velocities, update model
@@ -318,7 +318,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 2;
+	double slow_down_factor = 4;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;

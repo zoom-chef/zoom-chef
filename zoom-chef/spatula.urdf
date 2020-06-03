@@ -52,7 +52,6 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <!--<mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Spatula.obj" scale="1.0 1.0 1.0"/>-->
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Spatula.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
@@ -69,6 +68,7 @@
       <parent link="link0"/>
       <child link="link1"/>
       <axis xyz="0 0 1"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="-100" upper="100" velocity="21.3"/>
     </joint>
     <joint name="joint2" type="prismatic">
@@ -76,6 +76,7 @@
       <parent link="link1"/>
       <child link="link2"/>
       <axis xyz="0 1 0"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="-100" upper="100" velocity="21.3"/>
     </joint>
     <joint name="joint3" type="prismatic">
@@ -83,27 +84,31 @@
       <parent link="link2"/>
       <child link="link3"/>
       <axis xyz="1 0 0"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="-100" upper="100" velocity="21.3"/>
     </joint>
     <joint name="joint4" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <parent link="link3"/>
       <child link="link4"/>
-        <axis xyz="1 0 0"/>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
     <joint name="joint5" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <parent link="link4"/>
       <child link="link5"/>
-        <axis xyz="0 1 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
     <joint name="joint6" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <parent link="link5"/>
       <child link="link6"/>
-        <axis xyz="0 0 1"/>
+      <axis xyz="0 0 1"/>
+      <dynamics damping="20.0" friction="0.0"/>
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
 </robot>

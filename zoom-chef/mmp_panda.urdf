@@ -194,10 +194,10 @@
     </collision>
   </link>
 
-  <link name="leftfinger">
+  <link name="leftfinger">s
     <inertial>
       <origin xyz="0 0 0.05" rpy="0 -0 0" />
-      <mass value="0.1" />
+      <mass value="1.0" />
       <inertia ixx="0.01" iyy="0.01" izz="0.005" ixy="0" ixz="0" iyz="0" />
     </inertial>
     <visual>
@@ -211,13 +211,16 @@
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
         scale="1.5 1.0 2.5"/>
       </geometry>
+      <friction>
+        <mu value="0.8"/>
+      </friction>
     </collision>
   </link>
 
   <link name="rightfinger">
     <inertial>
       <origin xyz="0 0 0.05" rpy="0 -0 0" />
-      <mass value="0.1" />
+      <mass value="1.0" />
       <inertia ixx="0.01" iyy="0.01" izz="0.005" ixy="0" ixz="0" iyz="0" />
     </inertial>
     <visual>
@@ -233,6 +236,9 @@
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
         scale="1.5 1.0 1.5"/>
       </geometry>
+      <friction>
+        <mu value="0.8"/>
+      </friction>
     </collision>
   </link>
 
@@ -342,16 +348,18 @@
       <child link="leftfinger"/>
       <origin xyz="0 0 0.1654" rpy="0 0 -0.78539816339"/>
       <axis xyz="0 1 0"/>
+      <dynamics damping="50.0" friction="0.0"/>
       <calibration rising="0.02" />
-      <limit effort="20" lower="0.0" upper="0.04" velocity="0.2"/>
+      <limit effort="20" lower="0.0" upper="0.04" velocity="2"/>
     </joint>
     <joint name="finger_joint2" type="prismatic">
       <parent link="link7"/>
       <child link="rightfinger"/>
       <origin xyz="0 0 0.1654" rpy="0 0 -0.78539816339"/>
       <axis xyz="0 1 0"/>
+      <dynamics damping="50.0" friction="0.0"/>
       <calibration rising="-0.02" />
-      <limit effort="20" lower="0.0" upper="0.04" velocity="0.2"/>
+      <limit effort="20" lower="0.0" upper="0.04" velocity="2"/>
       <!-- <mimic joint="finger_joint1" /> -->
     </joint>
 
