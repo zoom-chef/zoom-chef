@@ -172,18 +172,23 @@ int main() {
 	bool fTimerDidSleep = true;
 
 	Vector3d slide;
-	slide << 0.0, 0.25, 0.0;
+	slide << 0.0, 0.3, 0.0;
 	Matrix3d slide_ori;
-	double slide_angle = -5 * M_PI / 180.0;
+	double slide_angle = -2 * M_PI / 180.0;
 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(slide_angle), -sin(slide_angle),
    					0.0000000, sin(slide_angle), cos(slide_angle);
+   	Matrix3d lift_ori;
+	double lift_angle = 5 * M_PI / 180.0;
+	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
+   					0.0000000, cos(lift_angle), -sin(lift_angle),
+   					0.0000000, sin(lift_angle), cos(lift_angle);
 
 	Vector3d lift_height;
-	lift_height << 0.0, 0.0, 0.25;
+	lift_height << 0.0, 0.05, 0.25;
 
 	Vector3d drop_food;
-	drop_food << 0.0, 0.0, -0.25+0.05;
+	drop_food << 0.15, -0.15, -0.25+0.05;
 
 	while (runloop) {
 		// wait for next scheduled loop
@@ -214,13 +219,18 @@ int main() {
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
+			joint_task->_use_velocity_saturation_flag = false;
 			if(station == STATION_1) {
 				q_curr_desired(0) = -0.3514;
+				joint_task->_use_velocity_saturation_flag = true;
+				joint_task->_saturation_velocity(0) = 0.2;
 			}
 	
 			if(station == STATION_2)
 			{
 				q_curr_desired(0) = 0.3514;
+				joint_task->_use_velocity_saturation_flag = true;
+				joint_task->_saturation_velocity(0) = 0.2;
 			}
 
 			if(gripper_state == OPEN)
@@ -266,9 +276,9 @@ int main() {
 					cout << "Sliding..." << endl << endl;
 					posori_task->reInitializeTask();
 					posori_task->_use_velocity_saturation_flag = true;
-					posori_task->_linear_saturation_velocity = 0.1;
+					posori_task->_linear_saturation_velocity = 0.3;
 					posori_task->_desired_position += slide;
-					posori_task->_desired_orientation *= slide_ori ; 
+					posori_task->_desired_orientation *= slide_ori; 
 				}
 			}
 		}
@@ -346,6 +356,7 @@ int main() {
 					posori_task->reInitializeTask();
 					task =  LIFT_SPATULA;
 					posori_task->_desired_position +=lift_height;
+					posori_task->_desired_orientation *= lift_ori ;
 				} else if (task == LIFT_SPATULA) {
 					state = JOINT_CONTROLLER;
 					cout << "Changing station..." << endl << endl;

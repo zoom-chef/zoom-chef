@@ -318,7 +318,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 4;
+	double slow_down_factor = 1;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;
