@@ -27,14 +27,14 @@
 	        </geometry>
 	    </collision>
 	    <visual>
-	    	 <origin xyz="0.0 0.0 -0.0001" rpy="0 0 0" />
-	        <geometry>
+	    	<origin xyz="0.0 0.0 -0.0001" rpy="0 0 0" />
+	        <!-- <geometry>
 	            <box size="100 100 100" />
-	        </geometry>
-	    	<!-- <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	        </geometry> -->
+	    	<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
 	        <geometry>
 	            <mesh filename="./resources/../../../zoom-chef/test_objects/meshes/visual/ground.obj" scale="1.0 1.0 1.0"/>
-	        </geometry> -->
+	        </geometry>
 	    </visual>
 	</static_object>
 
@@ -48,10 +48,15 @@
 	        </geometry>
 	    </collision>
 	    <visual>
-	    	<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Countertop.obj" scale="1.0 1.0 1.0"/>
-			<!-- <box size="1.0 1.0 0.458" /> -->
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/MarbleCountertopBottom.obj" scale="1.0 1.0 1.0"/>
+	        </geometry>
+	    </visual>
+	    <visual>
+	    	<origin xyz="0 0 0" rpy="0 0 0" />
+	        <geometry>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/MarbleCountertopTop.obj" scale="1.0 1.0 1.0"/>
 	        </geometry>
 	    </visual>
 	</static_object>
@@ -86,7 +91,7 @@
 	    <visual>
 	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Grill.obj" scale="1 1 1"/>
+	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/GrillCharcoal.obj" scale="1 1 1"/>
 	        </geometry> 
 	        <color rgba="0 0 0 1"/>
 	    </visual>
