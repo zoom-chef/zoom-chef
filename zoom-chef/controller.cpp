@@ -172,14 +172,14 @@ int main() {
 	bool fTimerDidSleep = true;
 
 	Vector3d slide;
-	slide << 0.0, 0.3, 0.0;
+	slide << 0.0, 0.27, 0.0;
 	Matrix3d slide_ori;
 	double slide_angle = -2 * M_PI / 180.0;
 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(slide_angle), -sin(slide_angle),
    					0.0000000, sin(slide_angle), cos(slide_angle);
    	Matrix3d lift_ori;
-	double lift_angle = 5 * M_PI / 180.0;
+	double lift_angle = 10 * M_PI / 180.0;
 	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(lift_angle), -sin(lift_angle),
    					0.0000000, sin(lift_angle), cos(lift_angle);

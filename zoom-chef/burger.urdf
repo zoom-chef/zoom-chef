@@ -108,7 +108,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="0.11 0.11 0.00846667"/>
+          <box size="0.08 0.08 0.00846667"/>
         </geometry>
       </visual>
       <!-- <collision>
@@ -121,7 +121,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="0.11 0.11 0.00846667"/>
+          <box size="0.08 0.08 0.00846667"/>
         </geometry>
       </collision>
     </link>
