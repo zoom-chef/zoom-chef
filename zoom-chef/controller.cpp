@@ -161,6 +161,16 @@ int main() {
 	joint_task->_kp = 200.0;
 	joint_task->_kv = 40.0;
 
+	//start of new code - not sure if it works
+	VectorXd kp_vec(12);
+	kp_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5;
+	kp_vec *= joint_task->_kp;
+	VectorXd kv_vec(12);
+	kv_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+	kv_vec *= joint_task->_kv;
+	joint_task->setNonIsotropicGains(kp_vec, kv_vec, VectorXd::Zero(12));
+	// end of new code
+
 	VectorXd q_init_desired = initial_q;
 	joint_task->_desired_position = q_init_desired;
 
@@ -172,14 +182,22 @@ int main() {
 	bool fTimerDidSleep = true;
 
 	Vector3d slide;
+<<<<<<< HEAD
 	slide << 0.0, 0.27, 0.0;
+=======
+	slide << 0.0, 0.28, 0.02;
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
 	Matrix3d slide_ori;
-	double slide_angle = -2 * M_PI / 180.0;
+	double slide_angle = -3 * M_PI / 180.0;
 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(slide_angle), -sin(slide_angle),
    					0.0000000, sin(slide_angle), cos(slide_angle);
    	Matrix3d lift_ori;
+<<<<<<< HEAD
 	double lift_angle = 10 * M_PI / 180.0;
+=======
+	double lift_angle = 6 * M_PI / 180.0;
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
 	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(lift_angle), -sin(lift_angle),
    					0.0000000, sin(lift_angle), cos(lift_angle);
@@ -188,7 +206,7 @@ int main() {
 	lift_height << 0.0, 0.05, 0.25;
 
 	Vector3d drop_food;
-	drop_food << 0.15, -0.15, -0.25+0.05;
+	drop_food << 0.15, -0.15, -0.25+0.06;
 
 	while (runloop) {
 		// wait for next scheduled loop
@@ -244,7 +262,7 @@ int main() {
 				q_curr_desired(11) = -finger_closed_pos;
 			}
 			if(task == RELAX_WRIST) {
-				q_curr_desired(9) = -M_PI/3;
+				q_curr_desired(9) = -M_PI/2;
 			}
 			// if (task == RELAX_WRIST) {
 			// 	q_curr_desired(7) -= M_PI/3;
@@ -354,6 +372,8 @@ int main() {
 					// state = POSORI_CONTROLLER;
 					cout << "Lifting..." << endl << endl;
 					posori_task->reInitializeTask();
+					posori_task->_use_velocity_saturation_flag = true;
+					posori_task->_linear_saturation_velocity = 0.1;
 					task =  LIFT_SPATULA;
 					posori_task->_desired_position +=lift_height;
 					posori_task->_desired_orientation *= lift_ori ;

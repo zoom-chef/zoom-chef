@@ -5,7 +5,7 @@
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <mass value="0.0005" />
-        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0" />
+        <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0" ixz="0" iyz="0" />
       </inertial>
     </link>
     <link name="link1">
@@ -70,12 +70,13 @@
     <link name="link6">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <mass value="0.05" />
-        <inertia ixx="1e-2" iyy="1e-2" izz="1e-2" ixy="0" ixz="0" iyz="0" />
+        <mass value="0.173" />
+        <inertia ixx="7.821e-5" iyy="7.821e-5" izz="1.384e-4" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <visual>
         <origin xyz="0 0 -0.025" rpy="0 0 0" />
         <geometry>
+          <!-- <cylinder length="0.00846667" radius="0.04064"/> -->
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/BurgerPrism.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
@@ -113,6 +114,10 @@
       </visual>
       <!-- <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
+<<<<<<< HEAD
+=======
+          <!-- <cylinder length="0.00846667" radius="0.04064"/> -->
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/BurgerPrism.obj" scale="1.0 1.0 1.0"/>
         </geometry>
@@ -131,6 +136,7 @@
       <parent link="link0"/>
       <child link="link1"/>
       <axis xyz="0 0 1"/>
+      <!-- <dynamics damping="0.0" friction="1"/> -->
       <limit effort="21.3" lower="-100" upper="100" velocity="21.3"/>
     </joint>
     <joint name="joint2" type="prismatic">
@@ -138,6 +144,7 @@
       <parent link="link1"/>
       <child link="link2"/>
       <axis xyz="0 1 0"/>
+      <!-- <dynamics damping="0.0" friction="1"/> -->
       <limit effort="21.3" lower="-100" upper="100" velocity="21.3"/>
     </joint>
     <joint name="joint3" type="prismatic">
@@ -152,7 +159,11 @@
       <parent link="link3"/>
       <child link="link4"/>
         <axis xyz="1 0 0"/>
+<<<<<<< HEAD
         <dynamics damping="20.0" friction="2.0"/>
+=======
+        <!-- <dynamics damping="0.0" friction="3"/> -->
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
     <joint name="joint5" type="revolute">
@@ -160,7 +171,11 @@
       <parent link="link4"/>
       <child link="link5"/>
         <axis xyz="0 1 0"/>
+<<<<<<< HEAD
         <dynamics damping="20.0" friction="2.0"/>
+=======
+        <!-- <dynamics damping="0.0" friction="3"/> -->
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
     <joint name="joint6" type="revolute">
@@ -168,7 +183,11 @@
       <parent link="link5"/>
       <child link="link6"/>
         <axis xyz="0 0 1"/>
+<<<<<<< HEAD
         <dynamics damping="20.0" friction="2.0"/>
+=======
+        <!-- <dynamics damping="0.0" friction="3"/> -->
+>>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
       <limit effort="21.3" lower="0" upper="6.28" velocity="21.3"/>
     </joint>
 </robot>

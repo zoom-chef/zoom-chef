@@ -104,8 +104,8 @@ int main() {
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0.1);
-	sim->setCoeffFrictionStatic(0.8);
-	sim->setCoeffFrictionDynamic(0.9);
+	sim->setCoeffFrictionStatic(0.9);
+	sim->setCoeffFrictionDynamic(0.2);
 
 
 	// read joint positions, velocities, update model
@@ -360,6 +360,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 		// get gravity torques
 		robot->gravityVector(g);
 
+		// g.setZero();
 		// read arm torques from redis and apply to simulated robot
 		command_torques = redis_client.getEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY);
 		
