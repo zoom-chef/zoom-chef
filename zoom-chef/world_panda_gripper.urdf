@@ -43,8 +43,7 @@
 	    <collision>
 	        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
 	        <geometry>
-			<!-- <box size="1.0 1.0 0.458" /> -->
-				<mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Countertop.obj" scale="1.0 1.0 1.0"/>
+				<mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/MarbleCountertopTop.obj" scale="1.0 1.0 1.0"/>
 	        </geometry>
 	    </collision>
 	    <visual>

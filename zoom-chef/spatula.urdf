@@ -4,7 +4,7 @@
     <link name="link0">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <mass value="0.0005" />
+        <mass value="1e-10" />
         <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0" />
       </inertial>
     </link>
@@ -90,21 +90,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-<<<<<<< HEAD
-          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/SpatulaLonger.obj" scale="1.0 1.0 1.0"/>
-=======
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaBase.obj" scale="1.0 1.0 1.0"/>
->>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
         <geometry>
-<<<<<<< HEAD
-          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaLonger_decomp.obj" scale="1.0 1.0 1.0"/>
-=======
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaBase.obj" scale="1.0 1.0 1.0"/>
->>>>>>> 1d88e25177a8cc3ac0f6997aeaca5a463956a21f
         </geometry>
       </collision>
     </link>
