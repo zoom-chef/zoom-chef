@@ -197,8 +197,8 @@
   <link name="leftfinger">s
     <inertial>
       <origin xyz="0 0 0.05" rpy="0 -0 0" />
-      <mass value="1.0" />
-      <inertia ixx="0.01" iyy="0.01" izz="0.005" ixy="0" ixz="0" iyz="0" />
+      <mass value="1.5" />
+      <inertia ixx="0.8" iyy="0.8" izz="0.8" ixy="0" ixz="0" iyz="0" />
     </inertial>
     <visual>
       <geometry>
@@ -220,8 +220,8 @@
   <link name="rightfinger">
     <inertial>
       <origin xyz="0 0 0.05" rpy="0 -0 0" />
-      <mass value="1.0" />
-      <inertia ixx="0.01" iyy="0.01" izz="0.005" ixy="0" ixz="0" iyz="0" />
+      <mass value="1.5" />
+     <inertia ixx="0.8" iyy="0.8" izz="0.8" ixy="0" ixz="0" iyz="0" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 3.14159265359" />

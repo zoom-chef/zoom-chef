@@ -57,7 +57,7 @@
 	</static_object>
 
 	<static_object name="Plate">
-		<origin xyz="0.7 0.5 0.458" rpy="0 0 0" />
+		<origin xyz="-0.5 0.5 0.458" rpy="0 0 0" />
 <!--
 		<collision>
 	        <origin xyz="0 0 0" rpy="0 0 0" />
@@ -104,26 +104,28 @@
 	</static_object>
 
 	<static_object name="CountertopBack">
-		<origin xyz="0.8128 0.45 0.0" rpy="0 0 0" />
+		<origin xyz="0.5 0.75 0.508" rpy="0 0 0" />
 	    <collision>
 	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Backstop.obj" scale="1 1 1"/>
+	            <!-- <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Backstop.obj" scale="1 1 1"/> -->
+	            <box size="0.475 0.0125 0.1" />
 	        </geometry>
 	        <color rgba="0 0 0 1"/>
 	    </collision>
 	    <visual>
 	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
-	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Backstop.obj" scale="1 1 1"/>
+	            <!-- <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/Backstop.obj" scale="1 1 1"/> -->
+	            <box size="0.475 0.0125 0.1" />
 	        </geometry>
 	        <color rgba="0 0 0 1"/>
 	    </visual>
 	</static_object>
 
-
+<!-- 
 	<static_object name="CuttingBoard">
-		<origin xyz="-0.5 0.5 0.458" rpy="0 0 0" />
+		<origin xyz="-0.5 0.5 0.458" rpy="0 0 0" /> -->
 <!--
 		<collision>
 	        <origin xyz="0 0 0" rpy="0 0 0" />
@@ -132,13 +134,13 @@
 	        </geometry>
 	    </collision>
 -->
-	    <visual>
+<!-- 	    <visual>
 	    	<origin xyz="0 0 0" rpy="0 0 0" />
 	        <geometry>
 	            <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/visual/Cutting_Board.obj" scale="0.001 0.001 0.001"/>
 	        </geometry>
 	    </visual>
-	</static_object>
+	</static_object> -->
 
 	<static_object name="Knob_One">
 		<origin xyz="0.38 0.363 0.47" rpy="0 0 0" />
