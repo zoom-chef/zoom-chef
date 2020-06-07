@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+// #include <GL/glew.h>
 #include "Sai2Model.h"
 #include "Sai2Graphics.h"
 #include "Sai2Simulation.h"
@@ -175,7 +175,7 @@ int main() {
 	double last_cursorx, last_cursory;
 
 	// initialize glew
-	glewInitialize();
+	// glewInitialize();
 
 	fSimulationRunning = true;
 
@@ -318,7 +318,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 1;
+	double slow_down_factor = 3;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;
