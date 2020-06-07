@@ -49,12 +49,12 @@
         <mass value="0.05" />
         <inertia ixx="0.1" iyy="0.1" izz="0.1" ixy="0" ixz="0" iyz="0" />
       </inertial>
-      <visual>
+      <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaHandle.obj" scale="1.0 1.0 1.0"/>
         </geometry>
-      </visual>
+      </visual> -->
       <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
         <geometry>
@@ -68,12 +68,12 @@
         <mass value="1e-10" />
         <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
       </inertial>
-      <visual>
+      <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaCenter.obj" scale="1.0 1.0 1.0"/>
         </geometry>
-      </visual>
+      </visual> -->
       <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
         <geometry>
@@ -87,18 +87,24 @@
         <mass value="0.05" />
         <inertia ixx="1e-2" iyy="1e-2" izz="1e-2" ixy="0" ixz="0" iyz="0" />
       </inertial>
-      <visual>
+      <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaBase.obj" scale="1.0 1.0 1.0"/>
         </geometry>
-      </visual>
+      </visual> -->
       <collision>
         <origin xyz="0 0 0.0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/SpatulaBase.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
+      <visual>
+        <origin xyz="0 0 0.0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/SpatulaVisual.obj" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </visual>
     </link>
     
     <joint name="joint1" type="prismatic">

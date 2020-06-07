@@ -30,6 +30,16 @@ const string spatula_file = "./resources/spatula.urdf";
 const string spatula_name = "spatula"; 
 const string burger_file = "./resources/burger.urdf";
 const string burger_name = "burger"; 
+const string tomato_file = "./resources/tomato.urdf";
+const string tomato_name = "tomato"; 
+const string cheese_file = "./resources/cheese.urdf";
+const string cheese_name = "cheese"; 
+const string lettuce_file = "./resources/lettuce.urdf";
+const string lettuce_name = "lettuce";
+const string top_bun_file = "./resources/top_bun.urdf";
+const string top_bun_name = "top_bun";
+const string bottom_bun_file = "./resources/bottom_bun.urdf";
+const string bottom_bun_name = "bottom_bun"; 
 
 // redis keys:
 // - write:
@@ -41,6 +51,11 @@ const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::sp
 const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
 const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
 const std::string BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
+const std::string TOMATO_POSITION_KEY = "sai2::cs225a::tomato::sensors::r_tomato";
+const std::string CHEESE_POSITION_KEY = "sai2::cs225a::cheese::sensors::r_cheese";
+const std::string LETTUCE_POSITION_KEY = "sai2::cs225a::lettuce::sensors::r_lettuce";
+const std::string TOP_BUN_POSITION_KEY = "sai2::cs225a::top_bun::sensors::r_top_bun";
+const std::string BOTTOM_BUN_POSITION_KEY = "sai2::cs225a::bottom_bun::sensors::r_bottom_bun";
 
 // - read
 const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
@@ -48,7 +63,16 @@ const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuator
 RedisClient redis_client;
 
 // simulation function prototype
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2Model::Sai2Model* burger, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
+void simulation(Sai2Model::Sai2Model* robot, 
+				Sai2Model::Sai2Model* spatula, 
+				Sai2Model::Sai2Model* burger, 
+				Sai2Model::Sai2Model* tomato, 
+				Sai2Model::Sai2Model* cheese, 
+				Sai2Model::Sai2Model* lettuce, 
+				Sai2Model::Sai2Model* top_bun,
+				Sai2Model::Sai2Model* bottom_bun, 
+				Simulation::Sai2Simulation* sim, 
+				UIForceWidget *ui_force_widget);
 
 // callback to print glfw errors
 void glfwError(int error, const char* description);
@@ -101,6 +125,26 @@ int main() {
 	burger->updateModel();
 	burger->updateKinematics();
 
+	auto tomato = new Sai2Model::Sai2Model(tomato_file, false);
+	tomato->updateModel();
+	tomato->updateKinematics();
+
+	auto cheese = new Sai2Model::Sai2Model(cheese_file, false);
+	cheese->updateModel();
+	cheese->updateKinematics();
+
+	auto lettuce = new Sai2Model::Sai2Model(lettuce_file, false);
+	lettuce->updateModel();
+	lettuce->updateKinematics();
+
+	auto top_bun = new Sai2Model::Sai2Model(top_bun_file, false);
+	top_bun->updateModel();
+	top_bun->updateKinematics();
+
+	auto bottom_bun = new Sai2Model::Sai2Model(bottom_bun_file, false);
+	bottom_bun->updateModel();
+	bottom_bun->updateKinematics();
+
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setCollisionRestitution(0.1);
@@ -120,21 +164,31 @@ int main() {
 	//set initial position of burger in world
 	Eigen::Vector3d r_burger;
 	Eigen::Matrix3d q_burger;
-	//q_spatula_init << 0.458, 0.4, 0.5, 0.0, 0.0, -M_PI;
-	//sim->setJointPositions(spatula_name, q_spatula_init);
+	// get position of all other objects in the world
+	Eigen::Vector3d r_tomato;
+	Eigen::Vector3d r_cheese;
+	Eigen::Vector3d r_lettuce;
+	Eigen::Vector3d r_top_bun;
+	Eigen::Vector3d r_bottom_bun;
+
 	spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
 	spatula->rotationInWorld(q_spatula, "link6");
-	Eigen::Vector3d spatula_offset;
-	//spatula_offset << 0.458, 0.4, 0.5;
-	r_spatula = r_spatula + spatula_offset;
 	spatula->updateModel();
 
 	burger->positionInWorld(r_burger, "link6", Vector3d(0, 0, 0));
 	burger->rotationInWorld(q_burger, "link6");
-	Eigen::Vector3d burger_offset;
-	//spatula_offset << 0.458, 0.4, 0.5;
-	r_burger = r_burger + burger_offset;
 	burger->updateModel();
+
+	tomato->positionInWorld(r_tomato, "link6", Vector3d(0, 0, 0));
+	tomato->updateModel();
+	cheese->positionInWorld(r_cheese, "link6", Vector3d(0, 0, 0));
+	cheese->updateModel();
+	lettuce->positionInWorld(r_lettuce, "link6", Vector3d(0, 0, 0));
+	lettuce->updateModel();
+	top_bun->positionInWorld(r_top_bun, "link6", Vector3d(0, 0, 0));
+	top_bun->updateModel();
+	bottom_bun->positionInWorld(r_bottom_bun, "link6", Vector3d(0, 0, 0));
+	bottom_bun->updateModel();
 
 	/*------- Set up visualization -------*/
 	// set up error callback
@@ -184,7 +238,7 @@ int main() {
 	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q); 
 	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, burger->_q); 
 
-	thread sim_thread(simulation, robot, spatula, burger, sim, ui_force_widget);
+	thread sim_thread(simulation, robot, spatula, burger, tomato, cheese, lettuce, top_bun, bottom_bun, sim, ui_force_widget);
 	
 	// while window is open:
 	while (!glfwWindowShouldClose(window) && fSimulationRunning)
@@ -195,6 +249,11 @@ int main() {
 		graphics->updateGraphics(robot_name, robot);
 		graphics->updateGraphics(spatula_name, spatula);
 		graphics->updateGraphics(burger_name, burger);
+		graphics->updateGraphics(tomato_name, tomato);
+		graphics->updateGraphics(cheese_name, cheese);
+		graphics->updateGraphics(lettuce_name, lettuce);
+		graphics->updateGraphics(top_bun_name, top_bun);
+		graphics->updateGraphics(bottom_bun_name, bottom_bun);
 		graphics->render(camera_name, width, height);
 
 		// swap buffers
@@ -308,7 +367,18 @@ int main() {
 }
 
 //------------------------------------------------------------------------------
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2Model::Sai2Model* burger, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
+// void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2Model::Sai2Model* burger, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
+void simulation(Sai2Model::Sai2Model* robot, 
+				Sai2Model::Sai2Model* spatula, 
+				Sai2Model::Sai2Model* burger, 
+				Sai2Model::Sai2Model* tomato, 
+				Sai2Model::Sai2Model* cheese, 
+				Sai2Model::Sai2Model* lettuce, 
+				Sai2Model::Sai2Model* top_bun,
+				Sai2Model::Sai2Model* bottom_bun, 
+				Simulation::Sai2Simulation* sim, 
+				UIForceWidget *ui_force_widget) {
+
 
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
@@ -336,7 +406,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	Eigen::Matrix3d q_spatula_local;
 	Eigen::Matrix3d q_spatula;
 	Eigen::Vector3d spatula_offset;
-	// spatula_offset << 0.458 + 0.025, 0.4 - 0.13, 0.5 + 0.17;
+
 	spatula_offset << 0.5, 0.4, 0.458;
 	Matrix3d spatula_rot_init;
 	spatula_rot_init << 0.0, 1.0, 0.0, 
@@ -347,12 +417,28 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 	Eigen::Matrix3d q_burger_local;
 	Eigen::Matrix3d q_burger;
 	Eigen::Vector3d burger_offset;
-	// spatula_offset << 0.458 + 0.025, 0.4 - 0.13, 0.5 + 0.17;
+
 	burger_offset << 0.5, 0.6, 0.5;
 	Matrix3d burger_rot_init;
 	burger_rot_init << 1.0, 0.0, 0.0, 
 						0.0, 1.0, 0.0,
 						0.0, 0.0, 1.0;
+
+	Eigen::Vector3d r_tomato = Vector3d::Zero();
+	Eigen::Vector3d tomato_offset;
+	tomato_offset << 0.6, 0.5, 0.55;
+	Eigen::Vector3d r_cheese = Vector3d::Zero();
+	Eigen::Vector3d cheese_offset;
+	cheese_offset << 0.7, 0.5, 0.55;
+	Eigen::Vector3d r_lettuce = Vector3d::Zero();
+	Eigen::Vector3d lettuce_offset;
+	lettuce_offset << 0.8, 0.5, 0.55;
+	Eigen::Vector3d r_top_bun = Vector3d::Zero();
+	Eigen::Vector3d top_bun_offset;
+	top_bun_offset << 0.9, 0.5, 0.55;
+	Eigen::Vector3d r_bottom_bun = Vector3d::Zero();
+	Eigen::Vector3d bottom_bun_offset;
+	bottom_bun_offset << 1.0, 0.5, 0.55;
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
@@ -394,7 +480,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 		q_spatula = q_spatula_local * spatula_rot_init;
 		spatula->updateModel();
 
-		// update joint positions for the spatula
+		// update joint positions for the burger
 		sim->getJointPositions(burger_name, burger->_q);
 		sim->getJointVelocities(burger_name, burger->_dq);
 		burger->updateModel();
@@ -405,6 +491,37 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 		q_burger = q_burger_local * burger_rot_init;
 		burger->updateModel();
 
+		// update graphics and positions for all other objects
+		sim->getJointPositions(tomato_name, tomato->_q);
+		sim->getJointVelocities(tomato_name, tomato->_dq);
+		tomato->updateModel();
+		tomato->positionInWorld(r_tomato, "link6");
+		r_tomato += tomato_offset;
+
+		sim->getJointPositions(cheese_name, cheese->_q);
+		sim->getJointVelocities(cheese_name, cheese->_dq);
+		cheese->updateModel();
+		cheese->positionInWorld(r_cheese, "link6");
+		r_cheese += cheese_offset;
+
+		sim->getJointPositions(lettuce_name, lettuce->_q);
+		sim->getJointVelocities(lettuce_name, lettuce->_dq);
+		lettuce->updateModel();
+		lettuce->positionInWorld(r_lettuce, "link6");
+		r_lettuce += lettuce_offset;
+
+		sim->getJointPositions(top_bun_name, top_bun->_q);
+		sim->getJointVelocities(top_bun_name, top_bun->_dq);
+		top_bun->updateModel();
+		top_bun->positionInWorld(r_top_bun, "link6");
+		r_top_bun += top_bun_offset;
+
+		sim->getJointPositions(bottom_bun_name, bottom_bun->_q);
+		sim->getJointVelocities(bottom_bun_name, bottom_bun->_dq);
+		bottom_bun->updateModel();
+		bottom_bun->positionInWorld(r_bottom_bun, "link6");
+		r_bottom_bun += bottom_bun_offset;
+
 		// write new robot state to redis
 		redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q);
 		redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq);
@@ -414,6 +531,11 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* spatula, Sai2
 		redis_client.setEigenMatrixJSON(BURGER_POSITION_KEY, r_burger);
 		redis_client.setEigenMatrixJSON(BURGER_ORIENTATION_KEY, q_burger);
 		redis_client.setEigenMatrixJSON(BURGER_JOINT_ANGLES_KEY, burger->_q);
+		redis_client.setEigenMatrixJSON(TOMATO_POSITION_KEY, r_tomato);
+		redis_client.setEigenMatrixJSON(CHEESE_POSITION_KEY, r_cheese);
+		redis_client.setEigenMatrixJSON(LETTUCE_POSITION_KEY, r_lettuce);
+		redis_client.setEigenMatrixJSON(TOP_BUN_POSITION_KEY, r_top_bun);
+		redis_client.setEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY, r_bottom_bun);
 
 		//update last time
 		last_time = curr_time;

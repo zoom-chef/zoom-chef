@@ -194,7 +194,7 @@
     </collision>
   </link>
 
-  <link name="leftfinger">s
+  <link name="leftfinger">
     <inertial>
       <origin xyz="0 0 0.05" rpy="0 -0 0" />
       <mass value="1.5" />

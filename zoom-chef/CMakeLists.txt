@@ -17,4 +17,4 @@ TARGET_LINK_LIBRARIES (simviz_zoom_chef ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMIT
 SET(APP_RESOURCE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 FILE(MAKE_DIRECTORY ${APP_RESOURCE_DIR})
 FILE(COPY world_panda_gripper.urdf mmp_panda.urdf DESTINATION ${APP_RESOURCE_DIR})
-FILE(COPY spatula.urdf burger.urdf DESTINATION ${APP_RESOURCE_DIR})
+FILE(COPY spatula.urdf burger.urdf tomato.urdf cheese.urdf lettuce.urdf top_bun.urdf bottom_bun.urdf DESTINATION ${APP_RESOURCE_DIR})
