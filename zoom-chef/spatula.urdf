@@ -47,7 +47,7 @@
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <mass value="0.05" />
-        <inertia ixx="0.1" iyy="0.1" izz="0.1" ixy="0" ixz="0" iyz="0" />
+        <inertia ixx="0.1" iyy="0.1" izz="1.0" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -84,8 +84,8 @@
     <link name="link8">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <mass value="0.05" />
-        <inertia ixx="1e-2" iyy="1e-2" izz="1e-2" ixy="0" ixz="0" iyz="0" />
+        <mass value="1e-10" />
+        <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <!-- <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />

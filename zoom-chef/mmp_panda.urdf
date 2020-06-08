@@ -203,13 +203,13 @@
     <visual>
       <geometry>
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
-        scale="1.5 1.0 2.5"/>
+        scale="5.0 1.0 2.5"/>
       </geometry>
     </visual>
      <collision>
       <geometry>
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
-        scale="1.5 1.0 2.5"/>
+        scale="5.0 1.0 2.5"/>
       </geometry>
       <friction>
         <mu value="0.8"/>
@@ -227,14 +227,14 @@
       <origin xyz="0 0 0" rpy="0 0 3.14159265359" />
       <geometry>
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
-        scale="1.5 1.0 1.5"/>
+        scale="5.0 1.0 1.5"/>
       </geometry>
     </visual>
      <collision>
       <origin xyz="0 0 0" rpy="0 0 3.14159265359" />
       <geometry>
         <mesh filename="../../../zoom-chef/panda/meshes/collision/finger.obj"
-        scale="1.5 1.0 1.5"/>
+        scale="5.0 1.0 1.5"/>
       </geometry>
       <friction>
         <mu value="0.8"/>

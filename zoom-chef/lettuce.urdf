@@ -54,12 +54,12 @@
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Lettuce.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
-      <collision>
+     <!--  <collision>
         <origin xyz="0 0 0.00079375"/>
         <geometry>
           <box size="0.075 0.075 0.0015875"/>
         </geometry>
-      </collision>
+      </collision> -->
     </link>
     
     <joint name="joint1" type="prismatic">

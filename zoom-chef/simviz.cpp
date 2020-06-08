@@ -46,7 +46,7 @@ const string bottom_bun_name = "bottom_bun";
 const std::string JOINT_ANGLES_KEY = "sai2::cs225a::project::sensors::q";
 const std::string JOINT_VELOCITIES_KEY = "sai2::cs225a::project::sensors::dq";
 const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
-const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
+const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::ori_spatula";
 const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
 const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
@@ -159,7 +159,7 @@ int main() {
 	// get position and orientation of spatula from sim
 	//set initial position of spatula in world
 	Eigen::Vector3d r_spatula;
-	Eigen::Matrix3d q_spatula;
+	Eigen::Matrix3d ori_spatula;
 	// get position and orientation of burger from sim
 	//set initial position of burger in world
 	Eigen::Vector3d r_burger;
@@ -172,7 +172,7 @@ int main() {
 	Eigen::Vector3d r_bottom_bun;
 
 	spatula->positionInWorld(r_spatula, "link6", Vector3d(0, 0, 0));
-	spatula->rotationInWorld(q_spatula, "link6");
+	spatula->rotationInWorld(ori_spatula, "link6");
 	spatula->updateModel();
 
 	burger->positionInWorld(r_burger, "link6", Vector3d(0, 0, 0));
@@ -388,7 +388,7 @@ void simulation(Sai2Model::Sai2Model* robot,
 	LoopTimer timer;
 	timer.initializeTimer();
 	// For David's Laptop: slow_down_factor = 3
-	double slow_down_factor = 3;
+	double slow_down_factor = 2;
 	timer.setLoopFrequency(1000); 
 	double last_time = timer.elapsedTime()/slow_down_factor; //secs
 	bool fTimerDidSleep = true;
@@ -403,11 +403,11 @@ void simulation(Sai2Model::Sai2Model* robot,
 	ui_force_command_torques.setZero();
 
 	Eigen::Vector3d r_spatula;
-	Eigen::Matrix3d q_spatula_local;
-	Eigen::Matrix3d q_spatula;
+	Eigen::Matrix3d ori_spatula_local;
+	Eigen::Matrix3d ori_spatula;
 	Eigen::Vector3d spatula_offset;
 
-	spatula_offset << 0.5, 0.4, 0.458;
+	spatula_offset << 0.5, 0.4, 0.46;
 	Matrix3d spatula_rot_init;
 	spatula_rot_init << 0.0, 1.0, 0.0, 
 						-1.0, 0.0, 0.0,
@@ -418,27 +418,34 @@ void simulation(Sai2Model::Sai2Model* robot,
 	Eigen::Matrix3d q_burger;
 	Eigen::Vector3d burger_offset;
 
-	burger_offset << 0.5, 0.6, 0.5;
+	burger_offset << 0.5, 0.5, 0.5;
 	Matrix3d burger_rot_init;
 	burger_rot_init << 1.0, 0.0, 0.0, 
 						0.0, 1.0, 0.0,
 						0.0, 0.0, 1.0;
 
-	Eigen::Vector3d r_tomato = Vector3d::Zero();
-	Eigen::Vector3d tomato_offset;
-	tomato_offset << 0.6, 0.5, 0.55;
-	Eigen::Vector3d r_cheese = Vector3d::Zero();
-	Eigen::Vector3d cheese_offset;
-	cheese_offset << 0.7, 0.5, 0.55;
-	Eigen::Vector3d r_lettuce = Vector3d::Zero();
-	Eigen::Vector3d lettuce_offset;
-	lettuce_offset << 0.8, 0.5, 0.55;
-	Eigen::Vector3d r_top_bun = Vector3d::Zero();
-	Eigen::Vector3d top_bun_offset;
-	top_bun_offset << 0.9, 0.5, 0.55;
+
 	Eigen::Vector3d r_bottom_bun = Vector3d::Zero();
 	Eigen::Vector3d bottom_bun_offset;
-	bottom_bun_offset << 1.0, 0.5, 0.55;
+	bottom_bun_offset << 0.6, 0.5, 0.5;
+
+	Eigen::Vector3d r_top_bun = Vector3d::Zero();
+	Eigen::Vector3d top_bun_offset;
+	top_bun_offset << 0.7, 0.5, 0.5;
+	
+	Eigen::Vector3d r_lettuce = Vector3d::Zero();
+	Eigen::Vector3d lettuce_offset;
+	lettuce_offset << 0.8, 0.5, 0.5;
+
+	Eigen::Vector3d r_cheese = Vector3d::Zero();
+	Eigen::Vector3d cheese_offset;
+	cheese_offset << 0.9, 0.5, 0.5;
+
+	Eigen::Vector3d r_tomato = Vector3d::Zero();
+	Eigen::Vector3d tomato_offset;
+	tomato_offset << 1.0, 0.5, 0.5;
+
+
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
@@ -475,9 +482,9 @@ void simulation(Sai2Model::Sai2Model* robot,
 		spatula->updateModel();
 
 		spatula->positionInWorld(r_spatula, "link6");
-		spatula->rotationInWorld(q_spatula_local, "link6");
+		spatula->rotationInWorld(ori_spatula_local, "link6");
 		r_spatula += spatula_offset;
-		q_spatula = q_spatula_local * spatula_rot_init;
+		ori_spatula = ori_spatula_local * spatula_rot_init;
 		spatula->updateModel();
 
 		// update joint positions for the burger
@@ -526,7 +533,7 @@ void simulation(Sai2Model::Sai2Model* robot,
 		redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q);
 		redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq);
 		redis_client.setEigenMatrixJSON(SPATULA_POSITION_KEY, r_spatula);
-		redis_client.setEigenMatrixJSON(SPATULA_ORIENTATION_KEY, q_spatula);
+		redis_client.setEigenMatrixJSON(SPATULA_ORIENTATION_KEY, ori_spatula);
 		redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q);
 		redis_client.setEigenMatrixJSON(BURGER_POSITION_KEY, r_burger);
 		redis_client.setEigenMatrixJSON(BURGER_ORIENTATION_KEY, q_burger);

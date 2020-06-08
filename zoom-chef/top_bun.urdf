@@ -57,7 +57,7 @@
       <collision>
         <origin xyz="0 0 0.009525"/>
         <geometry>
-          <cylinder length="0.01905" radius="0.04572"/>
+           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/BurgerPrism.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>

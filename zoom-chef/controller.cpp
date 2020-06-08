@@ -23,12 +23,16 @@ using namespace Eigen;
 // panda + mobile base + gripper
 //spatula
 const string robot_file = "./resources/mmp_panda.urdf";
-const string spatula_file = "./resources/spatula.urdf";
-//burger
-const string burger_file = "./resources/burger.urdf";
-const string burger_name = "burger"; 
+// const string spatula_file = "./resources/spatula.urdf";
+// //burger
+// const string burger_file = "./resources/burger.urdf";
+// const string burger_name = "burger"; 
 // bun 1
-// bun 2
+// const string bottom_bun_file = "./resources/bottom_bun.urdf";
+// const string bottom_bun_name = "bot_bun"; 
+// // bun 2
+// const string top_bun_file = "./resources/top_bun.urdf";
+// const string top_bun_name = "top_bun"; 
 // cheese
 // tomato
 // lettuce
@@ -46,6 +50,7 @@ const string burger_name = "burger";
 #define RELAX_WRIST			  6
 #define FLEX_WRIST			  7
 #define RESET			      8
+#define ALIGN                 9
 // gripper states
 #define OPEN                  0
 #define CLOSED                1
@@ -71,6 +76,8 @@ std::string SPATULA_JOINT_ANGLES_KEY;
 std::string BURGER_POSITION_KEY;
 std::string BURGER_ORIENTATION_KEY;
 std::string BURGER_JOINT_ANGLES_KEY;
+std::string BOTTOM_BUN_POSITION_KEY;
+std::string TOP_BUN_POSITION_KEY;
 // - write
 std::string JOINT_TORQUES_COMMANDED_KEY;
 
@@ -80,44 +87,8 @@ std::string CORIOLIS_KEY;
 std::string ROBOT_GRAVITY_KEY;
 
 unsigned long long controller_counter = 0;
-
+int relax_counter = 0;
 const bool inertia_regularization = true;
-
-// start redis client
-// auto redis_client = RedisClient();
-// // redis_client.connect();
-// template<class M, typename string>
-// void get_x_pos(VectorXd& des_pos, string FOOD_POS_KEY) {
-// 		Vector3d r_food = redis_client.getEigenMatrixJSON(FOOD_POS_KEY);
-// 		double x_food = r_food(0);
-// 		des_pos(0) = x_food;
-// 	}
-// template<class M>
-// void y_slide(VectorXd& des_pos, MatrixXd& des_ori) {
-// 	Vector3d slide;
-// 	slide << 0.0, 0.28, 0.02;
-// 	des_pos += slide;
-
-// 	Matrix3d slide_ori;
-// 	double slide_angle = -3 * M_PI / 180.0;
-// 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
-//    					0.0000000, cos(slide_angle), -sin(slide_angle),
-//    					0.0000000, sin(slide_angle), cos(slide_angle);
-//    	des_ori *= slide_ori;
-// }
-// template<class M>
-// void z_lift(VectorXd& des_pos, MatrixXd& des_ori){
-// 	Vector3d lift_height;
-// 	lift_height << 0.0, 0.05, 0.25;
-// 	des_pos+=lift_height;
-
-// 	Matrix3d lift_ori;
-// 	double lift_angle = 6 * M_PI / 180.0;
-// 	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
-//    					0.0000000, cos(lift_angle), -sin(lift_angle),
-//    					0.0000000, sin(lift_angle), cos(lift_angle);
-//    	des_ori*=lift_ori;		
-// }
 
 
 int main() {
@@ -127,13 +98,13 @@ int main() {
 	JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
 	// KEY FOR SPATULA POSITION
 	SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spatula";
-	SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::q_spatula";
+	SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::ori_spatula";
 	SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 	// KEY POSITION FOR BURGER
 	BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
-	BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
-	BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
-
+	// KEY POSITION FOR BUNS
+	BOTTOM_BUN_POSITION_KEY = "sai2::cs225a::bottom_bun::sensors::r_bottom_bun";
+	TOP_BUN_POSITION_KEY = "sai2::cs225a::top_bun::sensors::r_top_bun";
 	// start redis client
 	auto redis_client = RedisClient();
 	redis_client.connect();
@@ -173,23 +144,27 @@ int main() {
   	double finger_rest_pos = 0.02;
 	double finger_closed_pos = -0.01;
  	// spatula
-	auto spatula = new Sai2Model::Sai2Model(spatula_file, false);
 	Vector3d r_spatula = Vector3d::Zero();
-	Matrix3d q_spatula = Matrix3d::Zero();
+	Matrix3d ori_spatula = Matrix3d::Zero();
 	VectorXd spatula_q(6);
 	r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);	
-	q_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);	
-	spatula_q = redis_client.getEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY);	
+	Vector3d r_spatula_init = r_spatula;
+	ori_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);	
+	Vector3d del_r; // r_spatula - r_end_effector
+	Matrix3d ori_spatula_level = ori_spatula;
+	// spatula_q = redis_client.getEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY);	
 	// burger
-	auto burger = new Sai2Model::Sai2Model(burger_file, false);
+	Vector3d r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
+	Vector3d r_top_bun = redis_client.getEigenMatrixJSON(TOP_BUN_POSITION_KEY);
+	Vector3d r_burger = redis_client.getEigenMatrixJSON(BURGER_POSITION_KEY);
 	// bun 1
 	// bun 2
-	// cheese
+	// cheese	
 	// tomato
 	// lettuce
-	string food_keys[] = {BURGER_POSITION_KEY};
+	
 	int food_index = 0;
-	bool movingFood2Grill = food_index < 1;
+	bool movingFood2Grill = food_index < 3;
 	// prepare controller
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
@@ -225,16 +200,6 @@ int main() {
 	joint_task->_kp = 200.0;
 	joint_task->_kv = 40.0;
 
-	//start of new code - not sure if it works
-	// VectorXd kp_vec(12);
-	// kp_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5;
-	// kp_vec *= joint_task->_kp;
-	// VectorXd kv_vec(12);
-	// kv_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	// kv_vec *= joint_task->_kv;
-	// joint_task->setNonIsotropicGains(kp_vec, kv_vec, VectorXd::Zero(12));
-	// end of new code
-
 	VectorXd q_init_desired = initial_q;
 	joint_task->_desired_position = q_init_desired;
 
@@ -246,13 +211,16 @@ int main() {
 	bool fTimerDidSleep = true;
 
 	Vector3d slide;
-	slide << 0.0, 0.27, 0.0;
+	slide << 0.0, 0.25, 0.0;
 	// slide << 0.0, 0.28, 0.02;
 	Matrix3d slide_ori;
-	double slide_angle = -3 * M_PI / 180.0;
+	double slide_angle = -6 * M_PI / 180.0;
 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(slide_angle), -sin(slide_angle),
    					0.0000000, sin(slide_angle), cos(slide_angle);
+
+   	double y_slide = 0.44;  // based off of backstop location and thickness
+
    	Matrix3d lift_ori;
 	double lift_angle = 10 * M_PI / 180.0;
 	// double lift_angle = 6 * M_PI / 180.0;
@@ -261,12 +229,22 @@ int main() {
    					0.0000000, cos(lift_angle), -sin(lift_angle),
    					0.0000000, sin(lift_angle), cos(lift_angle);
 
-	Vector3d lift_height;
-	lift_height << 0.0, 0.05, 0.25;
-
+	// Vector3d lift_height;
+	// lift_height << 0.0, 0.05, 0.25;
+	double z_lift = 0.6;
 	Vector3d drop_food;
-	drop_food << 0.15, -0.15, -0.25+0.1;
+	drop_food << 0.0, 0.25, 0.53;
+	Matrix3d relax_ori;
+	double relax_angle = -30 * M_PI / 180.0;
+	relax_ori << 	1.0000000, 0.0000000,  		 0.0000000,
+					0.0000000, cos(relax_angle), -sin(relax_angle),
+					0.0000000, sin(relax_angle), cos(relax_angle);
 
+	Matrix3d flex_ori;
+	double flex_angle = 0 * M_PI / 180.0;
+	flex_ori = relax_ori.transpose();
+
+	double y_offset_tip = 0.051;  // according to onshape - distance between spatula origin and front of spatula base
 	while (runloop) {
 		// wait for next scheduled loop
 		timer.waitForNextLoop();
@@ -275,12 +253,16 @@ int main() {
 		// read robot state from redis
 		robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 		robot->_dq = redis_client.getEigenMatrixJSON(JOINT_VELOCITIES_KEY);
-		r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);
-		q_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);
+		r_spatula = redis_client.getEigenMatrixJSON(SPATULA_POSITION_KEY);		
+		ori_spatula = redis_client.getEigenMatrixJSON(SPATULA_ORIENTATION_KEY);
 
+		r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
+		r_top_bun = redis_client.getEigenMatrixJSON(TOP_BUN_POSITION_KEY);
+		r_burger = redis_client.getEigenMatrixJSON(BURGER_POSITION_KEY);
+
+		Vector3d r_foods[] = {r_burger, r_bottom_bun, r_top_bun};
 		// update model
 		robot->updateModel();
-		spatula->updateModel();
 		
 		VectorXd q_curr_desired(12);
 		q_curr_desired = robot->_q;
@@ -290,6 +272,14 @@ int main() {
 		Matrix3d ee_rot;
 		robot->rotationInWorld(ee_rot, control_link);
 
+				// if (controller_counter % 1500 == 0) {
+				// 	cout << "Food #" << food_index << ": r_food = " << r_food.transpose() << endl << endl;
+				// 	cout << "r_spatula = " << r_spatula.transpose() << endl << endl;
+				// 	cout << "ee_pos = " << ee_pos.transpose() << endl << endl;
+				// 	cout << "del_r_s_ee = " << del_r.transpose() << endl << endl;
+				// 	cout << "r_align = " << r_align.transpose() << endl << endl;
+				// 	cout << "r_food - del_r = " << (r_food - del_r).transpose() << endl << endl;
+				// }
 
 		if(state == JOINT_CONTROLLER)
 		{
@@ -297,10 +287,9 @@ int main() {
 			N_prec.setIdentity();
 			joint_task->updateTaskModel(N_prec);
 			joint_task->_use_velocity_saturation_flag = false;
-			if(task == RESET) {
-				
-			}
-			if(station == STATION_1) {
+
+			if(station == STATION_1) 
+			{
 				q_curr_desired(0) = -0.3514;
 				joint_task->_use_velocity_saturation_flag = true;
 				joint_task->_saturation_velocity(0) = 0.2;
@@ -323,20 +312,7 @@ int main() {
 				q_curr_desired(10) = finger_closed_pos;
 				q_curr_desired(11) = -finger_closed_pos;
 			}
-			if(task == RELAX_WRIST) {
-				q_curr_desired(9) = -M_PI/3.0;
-				joint_task->_use_velocity_saturation_flag = true;
-				joint_task->_saturation_velocity(9) = 0.05;
-			}
-			if(task == FLEX_WRIST) {
-				q_curr_desired(9) = M_PI/12.0;
-				joint_task->_use_velocity_saturation_flag = true;
-				joint_task->_saturation_velocity(9) = 0.05;
-			}
 
-			// if (task == RELAX_WRIST) {
-			// 	q_curr_desired(7) -= M_PI/3;
-			// }
 			joint_task->_desired_position = q_curr_desired;
 			// compute torques
 			joint_task->computeTorques(joint_task_torques);
@@ -351,14 +327,18 @@ int main() {
 				if (task == SPATULA_GRASP_POS) {
 					state = POSORI_CONTROLLER;
 					task = SLIDE;
+					// TURN OFF ROBOT
+
 				}
 				if (station == STATION_1 && task == LIFT_SPATULA) {
 					state = POSORI_CONTROLLER;
 					cout << "Dropping food on grill..." << endl << endl;
 					task = DROP_FOOD;
 					posori_task->reInitializeTask();
-					posori_task->_desired_position += drop_food;
+					posori_task->_desired_position = drop_food;
+					posori_task->_desired_position(0) += 0.11 * food_index;
 				}
+
 				if (task == SLIDE) 
 				{
 					cout << "Sliding..." << endl << endl;
@@ -366,35 +346,41 @@ int main() {
 					posori_task->_use_velocity_saturation_flag = true;
 					posori_task->_linear_saturation_velocity = 0.3;
 					// y_slide<Matrix>(posori_task->_desired_position, posori_task->_desired_orientation);
-					posori_task->_desired_position += slide;
+					// posori_task->_desired_position += slide;
+					posori_task->_desired_position(1) = y_slide;
 					posori_task->_desired_orientation *= slide_ori; 
 				}
-				if (task == RELAX_WRIST) {
-					task = FLEX_WRIST;
-					joint_task->_desired_position(2)+=0.2;
-					cout << "Flexing wrist..." << endl << endl;
-				}
-				else if (task == FLEX_WRIST) {
-					if(food_index < 1){
+				else if (task == RESET)
+				{
+					if (food_index < 3)
+					{
+						cout << "Aligning..." << endl << endl;
+						task = ALIGN;
+						state = POSORI_CONTROLLER;
+						posori_task->reInitializeTask();
+						// posori_task->_desired_orientation = ori_spatula_level.transpose() * handle_rot_local;
 						food_index++;
-						state = JOINT_CONTROLLER;
-						joint_task->_desired_position=initial_q;
-						task = RESET;
-						station = STATION_2;
-						cout << "Moving to initial station..." << endl << endl;
+						Vector3d r_food = r_foods[food_index];
+						cout << "Current Food..." << food_index << endl << endl;
+					}
+					else 
+					{
+						task = IDLE;
 					}
 				}
 			}
 		}
-
+//-----------------------------------------***** POSORI CONTROLLER *****--------------------------------------------------------------
 		else if(state == POSORI_CONTROLLER)
 		{
 			// update task model and set hierarchy
 			N_prec.setIdentity();
 			posori_task->updateTaskModel(N_prec);
-			// N_prec = posori_task->_N;
-			// joint_task->kp = 250.0;
-			
+	
+			// FIX BASE
+			joint_task->_use_velocity_saturation_flag = true;
+			joint_task->_saturation_velocity(0) = 0.0;
+			joint_task->_saturation_velocity(1) = 0.0;
 			if(gripper_state == OPEN)
 			{
 				q_curr_desired(10) = finger_rest_pos;
@@ -414,23 +400,28 @@ int main() {
 				// need to maintain the finger position while moving to the spatula
 				posori_task->reInitializeTask();
 				// want this to be spatula position + local vector * local to world rotation
-				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_pre_grasp_local - base_offset;
+				posori_task->_desired_position = r_spatula + ori_spatula.transpose() * spatula_handle_pre_grasp_local - base_offset;
 				// go to spatula position
-				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
-			} else if (task == SPATULA_GRASP_POS) {
-				// cout << "Grasp" << endl << endl;
+				posori_task->_desired_orientation = ori_spatula.transpose() * handle_rot_local;
+			} 
+			else if (task == SPATULA_GRASP_POS) 
+			{
 				// need to maintain the finger position while moving to the spatula
 				posori_task->reInitializeTask();
 				// want this to be spatula position + local vector * local to world rotation
-				posori_task->_desired_position = r_spatula + q_spatula.transpose() * spatula_handle_grasp_local - base_offset;
-				// go to spatula position
-				posori_task->_desired_orientation = q_spatula.transpose() * handle_rot_local;
-			// } else if (task == SLIDE) {
-			} else if (task == DROP_FOOD) {
-				// this state should be entered after closing the gripper
-				// goal is to simply lift the spatula in the z-direction while keeping the same current orientation
-				// posori_task->reInitializeTask();
-	
+				posori_task->_desired_position = r_spatula + ori_spatula.transpose() * spatula_handle_grasp_local - base_offset;
+				posori_task->_desired_orientation = ori_spatula.transpose() * handle_rot_local;
+
+			} 
+			else if (task == ALIGN)
+			{
+				Vector3d r_food = r_foods[food_index];
+				Vector3d r_align;
+				r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*food_index;
+				r_align(1) = r_food(1) - 0.45;
+				r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
+				posori_task->_desired_position = r_align;
+				posori_task->_desired_orientation *= relax_ori;
 			}
 			
 			// compute torques
@@ -462,7 +453,7 @@ int main() {
 					posori_task->_linear_saturation_velocity = 0.1;
 					task =  LIFT_SPATULA;
 					// z_lift<Matrix>(posori_task->_desired_position, posori_task->_desired_orientation);
-					posori_task->_desired_position +=lift_height;
+					posori_task->_desired_position(2) = z_lift;
 					posori_task->_desired_orientation *= lift_ori;
 				} else if (task == LIFT_SPATULA) {
 					state = JOINT_CONTROLLER;
@@ -470,18 +461,55 @@ int main() {
 					joint_task->reInitializeTask();
 					station = STATION_1;
 				}
-				// } else if (task == DROP_FOOD) {
-				// 	state = JOINT_CONTROLLER;
-				// }
-				else if (task == DROP_FOOD){
+
+				else if (task == DROP_FOOD)
+				{
 					cout << "\t(Relaxing wrist...)" << endl << endl;
 					task = RELAX_WRIST;
-					// posori_task->reInitializeTask();
+					posori_task->reInitializeTask();
+					// state = POSORI_CONTROLLER;
+					posori_task->_desired_orientation *= relax_ori;
+				}
+				else if (task == RELAX_WRIST)
+				{
+					// start counter for relaxing					
+					if(relax_counter < 1000) 
+					{
+						relax_counter++;
+					} 
+					else 
+					{
+						cout << "\t(Flexing wrist...)" << endl << endl;
+						task = FLEX_WRIST;
+						posori_task->reInitializeTask();
+						posori_task->_desired_orientation *= flex_ori;
+						relax_counter=0;
+					}
+				}
+				else if (task == FLEX_WRIST)
+				{
 					state = JOINT_CONTROLLER;
+					task = RESET;
+					cout << "Moving to initial station..." << endl << endl;
+					joint_task->reInitializeTask();
+					station = STATION_2;
+				}
+				else if (task == ALIGN)
+				{
+					task = SLIDE;
+					cout << "Sliding for Food " << food_index << "..." << endl << endl;
+					posori_task->reInitializeTask();
+					posori_task->_use_velocity_saturation_flag = true;
+					posori_task->_linear_saturation_velocity = 0.3;
+					
+					posori_task->_desired_position(1) = y_slide;
+					posori_task->_desired_orientation *= slide_ori; 
 				}
 
-			}
-		}
+
+			} // goal reached if-statement
+		}// posori if-statement
+
 
 		if(controller_counter % 5000 == 0 && VERBOSE)
 		{
