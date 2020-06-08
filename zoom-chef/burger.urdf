@@ -51,7 +51,7 @@
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/collision/BurgerPrism.obj" scale="1.0 1.0 1.0"/>
+          <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/Burger.obj" scale="1.0 1.0 1.0"/>
         </geometry>
       </visual>
       <collision>

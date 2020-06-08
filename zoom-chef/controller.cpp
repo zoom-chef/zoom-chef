@@ -51,6 +51,7 @@ const string robot_file = "./resources/mmp_panda.urdf";
 #define FLEX_WRIST			  7
 #define RESET			      8
 #define ALIGN                 9
+#define PLATE                10
 // gripper states
 #define OPEN                  0
 #define CLOSED                1
@@ -163,8 +164,8 @@ int main() {
 	// tomato
 	// lettuce
 	
-	int food_index = 0;
-	bool movingFood2Grill = food_index < 3;
+	int grill_index = 0;
+	int plate_index = 0;
 	// prepare controller
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
@@ -260,7 +261,9 @@ int main() {
 		r_top_bun = redis_client.getEigenMatrixJSON(TOP_BUN_POSITION_KEY);
 		r_burger = redis_client.getEigenMatrixJSON(BURGER_POSITION_KEY);
 
-		Vector3d r_foods[] = {r_burger, r_bottom_bun, r_top_bun};
+		Vector3d grill_foods[] = {r_burger, r_bottom_bun, r_top_bun};
+		Vector3d foods[] = {r_bottom_bun, r_burger, r_top_bun};
+		int plate_shift[] = {1, 0, 2};
 		// update model
 		robot->updateModel();
 		
@@ -271,15 +274,6 @@ int main() {
 		robot->positionInWorld(ee_pos, control_link, control_point);
 		Matrix3d ee_rot;
 		robot->rotationInWorld(ee_rot, control_link);
-
-				// if (controller_counter % 1500 == 0) {
-				// 	cout << "Food #" << food_index << ": r_food = " << r_food.transpose() << endl << endl;
-				// 	cout << "r_spatula = " << r_spatula.transpose() << endl << endl;
-				// 	cout << "ee_pos = " << ee_pos.transpose() << endl << endl;
-				// 	cout << "del_r_s_ee = " << del_r.transpose() << endl << endl;
-				// 	cout << "r_align = " << r_align.transpose() << endl << endl;
-				// 	cout << "r_food - del_r = " << (r_food - del_r).transpose() << endl << endl;
-				// }
 
 		if(state == JOINT_CONTROLLER)
 		{
@@ -327,7 +321,6 @@ int main() {
 				if (task == SPATULA_GRASP_POS) {
 					state = POSORI_CONTROLLER;
 					task = SLIDE;
-					// TURN OFF ROBOT
 
 				}
 				if (station == STATION_1 && task == LIFT_SPATULA) {
@@ -336,7 +329,7 @@ int main() {
 					task = DROP_FOOD;
 					posori_task->reInitializeTask();
 					posori_task->_desired_position = drop_food;
-					posori_task->_desired_position(0) += 0.11 * food_index;
+					posori_task->_desired_position(0) += (0.11 * grill_index);
 				}
 
 				if (task == SLIDE) 
@@ -345,26 +338,25 @@ int main() {
 					posori_task->reInitializeTask();
 					posori_task->_use_velocity_saturation_flag = true;
 					posori_task->_linear_saturation_velocity = 0.3;
-					// y_slide<Matrix>(posori_task->_desired_position, posori_task->_desired_orientation);
-					// posori_task->_desired_position += slide;
 					posori_task->_desired_position(1) = y_slide;
 					posori_task->_desired_orientation *= slide_ori; 
 				}
 				else if (task == RESET)
 				{
-					if (food_index < 3)
+					// grill_index++;
+					if (grill_index < 3)
 					{
 						cout << "Aligning..." << endl << endl;
 						task = ALIGN;
 						state = POSORI_CONTROLLER;
 						posori_task->reInitializeTask();
-						// posori_task->_desired_orientation = ori_spatula_level.transpose() * handle_rot_local;
-						food_index++;
-						Vector3d r_food = r_foods[food_index];
-						cout << "Current Food..." << food_index << endl << endl;
+						
+						Vector3d r_food = grill_foods[grill_index];
+						cout << "Current Food..." << grill_index << endl << endl;
 					}
 					else 
 					{
+						cout << "FUCKED UP";
 						task = IDLE;
 					}
 				}
@@ -415,11 +407,21 @@ int main() {
 			} 
 			else if (task == ALIGN)
 			{
-				Vector3d r_food = r_foods[food_index];
 				Vector3d r_align;
-				r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*food_index;
-				r_align(1) = r_food(1) - 0.45;
-				r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
+				if (grill_index < 3)
+				{
+					Vector3d r_food = grill_foods[grill_index];					
+					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*grill_index;
+					r_align(1) = r_food(1) - 0.45;
+					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
+				}
+				if (grill_index == 3 && plate_index < 3)
+				{
+					Vector3d r_food = foods[plate_index];
+					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*plate_shift[plate_index];
+					r_align(1) = r_food(1) - 0.45;
+					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1 + (0.4699+0.0254);
+				}
 				posori_task->_desired_position = r_align;
 				posori_task->_desired_orientation *= relax_ori;
 			}
@@ -440,12 +442,16 @@ int main() {
 					cout << "Moving to Grasp Position" << endl << endl;
 					// move inwards to the grasp position
 					task = SPATULA_GRASP_POS;					
-				} else if (task == SPATULA_GRASP_POS) {
+				} 
+				else if (task == SPATULA_GRASP_POS) 
+				{
 					cout << "Closing Gripper..." << endl << endl;
 					// if we are in the grasp position, go to a joint task and close the jaws
 					state = JOINT_CONTROLLER;
 					gripper_state = CLOSED;
-				} else if (task == SLIDE) {
+				} 
+				else if (task == SLIDE) 
+				{
 					// state = POSORI_CONTROLLER;
 					cout << "Lifting..." << endl << endl;
 					posori_task->reInitializeTask();
@@ -455,13 +461,26 @@ int main() {
 					// z_lift<Matrix>(posori_task->_desired_position, posori_task->_desired_orientation);
 					posori_task->_desired_position(2) = z_lift;
 					posori_task->_desired_orientation *= lift_ori;
-				} else if (task == LIFT_SPATULA) {
+				} 
+				else if (task == LIFT_SPATULA) 
+				{
 					state = JOINT_CONTROLLER;
-					cout << "Changing station..." << endl << endl;
-					joint_task->reInitializeTask();
-					station = STATION_1;
+					if (grill_index < 3)
+					{
+						cout << "Changing station..." << endl << endl;
+						joint_task->reInitializeTask();
+						station = STATION_1;
+					}
+					else if (plate_index < 3)
+					{
+						cout << "Plating food #" << plate_index << " ..." << endl << endl;
+						task = PLATE;
+						posori_task->reInitializeTask();
+						// hard part
+						task = IDLE;
+					}
+					
 				}
-
 				else if (task == DROP_FOOD)
 				{
 					cout << "\t(Relaxing wrist...)" << endl << endl;
@@ -488,16 +507,36 @@ int main() {
 				}
 				else if (task == FLEX_WRIST)
 				{
-					state = JOINT_CONTROLLER;
-					task = RESET;
-					cout << "Moving to initial station..." << endl << endl;
-					joint_task->reInitializeTask();
-					station = STATION_2;
+					
+					grill_index++;
+					cout << "Grill index#" << grill_index << endl << endl;
+					if(grill_index < 3)
+					{
+						state = JOINT_CONTROLLER;
+						task = RESET;
+						cout << "Moving to initial station..." << endl << endl;
+						joint_task->reInitializeTask();
+						station = STATION_2;
+					}
+					else if (plate_index < 3)
+					{
+						state = POSORI_CONTROLLER;
+						cout << "Aligning for plate#" << plate_index << "..." << endl << endl;
+						task = ALIGN;
+						posori_task->reInitializeTask();
+					}
 				}
 				else if (task == ALIGN)
 				{
 					task = SLIDE;
-					cout << "Sliding for Food " << food_index << "..." << endl << endl;
+					if (grill_index < 3)
+					{
+						cout << "Sliding for Grill Food " << grill_index << "..." << endl << endl;
+					} 
+					if (grill_index == 3 && plate_index < 3)
+					{
+						cout << "Sliding for Plate Food " << plate_index << "..." << endl << endl;
+					}						
 					posori_task->reInitializeTask();
 					posori_task->_use_velocity_saturation_flag = true;
 					posori_task->_linear_saturation_velocity = 0.3;

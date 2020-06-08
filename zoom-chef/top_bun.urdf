@@ -50,6 +50,7 @@
         <inertia ixx="7.821e-5" iyy="7.821e-5" izz="1.384e-4" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <visual>
+        <origin xyz="0 0 0.009525"/>
         <geometry>
           <mesh filename="../../../zoom-chef/kitchen_objects/meshes/visual/TopBun.obj" scale="1.0 1.0 1.0"/>
         </geometry>
