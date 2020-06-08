@@ -244,7 +244,10 @@ int main() {
 	Matrix3d flex_ori;
 	double flex_angle = 0 * M_PI / 180.0;
 	flex_ori = relax_ori.transpose();
-
+	
+	Vector3d plate_food;
+	plate_food << -0.415193, 0.481433-0.22, 0.4;
+	
 	double y_offset_tip = 0.051;  // according to onshape - distance between spatula origin and front of spatula base
 	while (runloop) {
 		// wait for next scheduled loop
@@ -415,15 +418,15 @@ int main() {
 					r_align(1) = r_food(1) - 0.45;
 					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
 				}
-				if (grill_index == 3 && plate_index < 3)
+				else if (plate_index < 3)
 				{
 					Vector3d r_food = foods[plate_index];
-					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*plate_shift[plate_index];
+					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) - 0.3*plate_shift[plate_index];
 					r_align(1) = r_food(1) - 0.45;
-					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1 + (0.4699+0.0254);
+					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1 + (0.0254);
 				}
 				posori_task->_desired_position = r_align;
-				posori_task->_desired_orientation *= relax_ori;
+				posori_task->_desired_orientation =  relax_ori;
 			}
 			
 			// compute torques
@@ -464,20 +467,22 @@ int main() {
 				} 
 				else if (task == LIFT_SPATULA) 
 				{
-					state = JOINT_CONTROLLER;
 					if (grill_index < 3)
 					{
+						state = JOINT_CONTROLLER;
 						cout << "Changing station..." << endl << endl;
 						joint_task->reInitializeTask();
 						station = STATION_1;
 					}
 					else if (plate_index < 3)
 					{
+						state = POSORI_CONTROLLER;
 						cout << "Plating food #" << plate_index << " ..." << endl << endl;
 						task = PLATE;
 						posori_task->reInitializeTask();
-						// hard part
-						task = IDLE;
+						posori_task->_desired_position(0) = plate_food(0);
+						posori_task->_desired_position(1) = plate_food(1);
+						posori_task->_desired_position(2) = plate_food(2) + (0.0254*plate_index);
 					}
 					
 				}
@@ -488,6 +493,15 @@ int main() {
 					posori_task->reInitializeTask();
 					// state = POSORI_CONTROLLER;
 					posori_task->_desired_orientation *= relax_ori;
+				}
+				else if (task == PLATE)
+				{
+					plate_index++;
+					cout << "\t(Relaxing wrist...)" << endl << endl;
+					task = RELAX_WRIST;
+					posori_task->reInitializeTask();
+					state = POSORI_CONTROLLER;
+					posori_task->_desired_orientation =  relax_ori;
 				}
 				else if (task == RELAX_WRIST)
 				{
