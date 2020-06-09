@@ -211,6 +211,15 @@ int main() {
 	double start_time = timer.elapsedTime(); //secs
 	bool fTimerDidSleep = true;
 
+				// STRENGTHEN GRIPPER FINGERS
+	 // VectorXd kp_vec(12);
+	 // kp_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5;
+	 // kp_vec *= joint_task->_kp;
+	 // VectorXd kv_vec(12);
+	 // kv_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+	 // kv_vec *= joint_task->_kv;
+	 // joint_task->setNonIsotropicGains(kp_vec, kv_vec, VectorXd::Zero(12));
+
 	Vector3d slide;
 	slide << 0.0, 0.25, 0.0;
 	// slide << 0.0, 0.28, 0.02;
@@ -246,7 +255,7 @@ int main() {
 	flex_ori = relax_ori.transpose();
 	
 	Vector3d plate_food;
-	plate_food << -0.415193, 0.481433-0.22, 0.4;
+	plate_food << -0.415193, 0.481433-0.24, 0.4;
 	
 	double y_offset_tip = 0.051;  // according to onshape - distance between spatula origin and front of spatula base
 	while (runloop) {
@@ -413,20 +422,36 @@ int main() {
 				Vector3d r_align;
 				if (grill_index < 3)
 				{
-					Vector3d r_food = grill_foods[grill_index];					
-					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*grill_index;
-					r_align(1) = r_food(1) - 0.45;
-					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
+					// Vector3d r_food = grill_foods[grill_index];					
+					// r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) + 0.04*grill_index;
+					// r_align(1) = r_food(1) - 0.45;
+					// r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1;
+
+					// // new
+					Vector3d robot_offset = Vector3d(0.0, -0.05, 0.3514);
+					Vector3d r_food = grill_foods[grill_index];		
+					r_align = r_food - robot_offset;	
+					double sim_offset = 0.005;
+					r_align(1) -= y_slide; 
+					r_align(2) += 0.11683695 + (0.17 - 0.107) * cos(30 * M_PI / 180) + sim_offset;
 				}
+
 				else if (plate_index < 3)
 				{
-					Vector3d r_food = foods[plate_index];
-					r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) - 0.3*plate_shift[plate_index];
-					r_align(1) = r_food(1) - 0.45;
-					r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1 + (0.0254);
+					// Vector3d r_food = foods[plate_index];
+					// r_align(0) = r_food(0) - ((r_food(0) - r_spatula(0))/2) - 0.3*plate_shift[plate_index];
+					// r_align(1) = r_food(1) - 0.45;
+					// r_align(2) = r_food(2) + (r_food(2)-r_spatula(2)) - 0.1 + (0.0254);
+
+					Vector3d robot_offset = Vector3d(0.0, -0.05, 0.3514);
+					Vector3d r_food = foods[plate_index];		
+					r_align = r_food - robot_offset;	
+					double sim_offset = 0.005;
+					r_align(1) -= y_slide; 
+					r_align(2) += 0.11683695 + (0.17 - 0.107) * cos(30 * M_PI / 180) + sim_offset;
 				}
 				posori_task->_desired_position = r_align;
-				posori_task->_desired_orientation =  relax_ori;
+				posori_task->_desired_orientation *=  relax_ori;
 			}
 			
 			// compute torques
@@ -501,7 +526,7 @@ int main() {
 					task = RELAX_WRIST;
 					posori_task->reInitializeTask();
 					state = POSORI_CONTROLLER;
-					posori_task->_desired_orientation =  relax_ori;
+					posori_task->_desired_orientation *=  relax_ori;
 				}
 				else if (task == RELAX_WRIST)
 				{

@@ -123,7 +123,7 @@
 	</static_object>
 
 	<static_object name="GrillBack">
-		<origin xyz="0 0.775 0.51334678" rpy="0 0 0" />
+		<origin xyz="0 0.75 0.51334678" rpy="0 0 0" />
 	    <collision>
 	        <geometry>
 	            <!-- <mesh filename="./resources/../../../zoom-chef/kitchen_objects/meshes/collision/GrillBack.obj" scale="1 1 1"/> -->
@@ -210,7 +210,8 @@
 	</light>
 
 	<camera name="camera_fixed">
-		<position xyz="2.0 -0.8 1.0" />
+		<!-- <position xyz="2.0 -0.8 1.0" /> -->
+		<position xyz="0.0 2.0 1.5" />
 		<vertical xyz="0.0 0.0 1.0" />
 		<lookat xyz="0.0 0.0 0.5" />
 	</camera>
