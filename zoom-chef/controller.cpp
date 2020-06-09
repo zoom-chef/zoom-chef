@@ -177,16 +177,16 @@ int main() {
 	// use plate food index
 
 	auto bottom_bun_task = new Sai2Primitives::JointTask(bottom_bun);
-	bottom_bun_task->_kp = 50.0;
+	bottom_bun_task->_kp = 80.0;
 	bottom_bun_task->_kv = 50.0;
 
 	auto burger_task = new Sai2Primitives::JointTask(burger);
-	burger_task->_kp = 50.0;
-	burger_task->_kv = 30.0;
+	burger_task->_kp = 80.0;
+	burger_task->_kv = 50.0;
 
 	auto top_bun_task = new Sai2Primitives::JointTask(top_bun);
-	top_bun_task->_kp = 50.0;
-	top_bun_task->_kv = 10.0;
+	top_bun_task->_kp = 75.0;
+	top_bun_task->_kv = 50.0;
 
 	bool food_actuate[] = {bottom_bun_actuate, burger_actuate, top_bun_actuate};
 	MatrixXd N_food[] = {N_bottom_bun, N_burger, N_top_bun};
@@ -329,7 +329,8 @@ int main() {
 	flex_ori = relax_ori.transpose();
 	
 	Vector3d plate_food;
-	plate_food << -0.415193, 0.481433-0.24, 0.4;
+	plate_food << -0.45, 0.5-0.221, 0.48;
+	// plate_food << -0.415193+0.02, 0.481433-0.21, 0.53;
 	
 	double y_offset_tip = 0.051;  // according to onshape - distance between spatula origin and front of spatula base
 	while (runloop) {
@@ -368,6 +369,11 @@ int main() {
 			joint_task->updateTaskModel(N_prec);
 			joint_task->_use_velocity_saturation_flag = false;
 
+			// if(task == IDLE)
+			// {
+			// 	q_curr_desired = q_init_desired;
+			// }
+
 			if(station == STATION_1) 
 			{
 				q_curr_desired(0) = -0.3514;
@@ -381,7 +387,7 @@ int main() {
 				joint_task->_use_velocity_saturation_flag = true;
 				joint_task->_saturation_velocity(0) = 0.2;
 			}
-
+			
 			if(gripper_state == OPEN)
 			{
 				q_curr_desired(10) = finger_rest_pos;
@@ -392,6 +398,9 @@ int main() {
 				q_curr_desired(10) = finger_closed_pos;
 				q_curr_desired(11) = -finger_closed_pos;
 			}
+
+
+
 
 			joint_task->_desired_position = q_curr_desired;
 			// compute torques
@@ -696,9 +705,19 @@ int main() {
 
 				Vector3d q_food_desired;
 
-				q_food_desired(0) = 0.458 + (f * 0.025);
-				q_food_desired(1) = 0.5-0.02;
-				q_food_desired(2) = -0.45-0.02;
+				if(f == 0)
+				{
+					q_food_desired(0) = 0.458 + (f * 0.027);
+					q_food_desired(1) = 0.5+0.01;
+					q_food_desired(2) = -0.45;
+				}
+
+				else if(f==1 or f==2)
+				{
+					q_food_desired(0) = food_robot[f-1]->_q(0) + 0.027;
+					q_food_desired(1) = food_robot[f-1]->_q(1);
+					q_food_desired(2) = food_robot[f-1]->_q(2);
+				}			
 
 				Vector3d r_food;
 				r_food = foods[f];
@@ -706,10 +725,10 @@ int main() {
 				food_robot[f]->_q(1) = r_food(1);
 				food_robot[f]->_q(2) = r_food(0);
 
-					for(int i = 0; i < 3; i++)
-					{
-						curr_food_task->_desired_position(i) = q_food_desired(i);
-					}
+				for(int i = 0; i < 3; i++)
+				{
+					curr_food_task->_desired_position(i) = q_food_desired(i);
+				}
 
 				Eigen::VectorXd g_food(6);
 				g_food << 9.81, 0, 0, 0, 0, 0;

@@ -175,6 +175,12 @@
         <mesh filename="../../../zoom-chef/panda/meshes/visual/link7.obj"/>
       </geometry>
     </visual>
+    <visual>
+      <origin xyz="0 0 0.05" rpy="3.14 0 0"/>
+      <geometry>
+        <mesh filename="../../../zoom-chef/panda/meshes/visual/chefhat.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </visual>
     <!-- <collision>
       <geometry>
         <mesh filename="../../../model/panda/meshes/collision/link7.obj"/>
