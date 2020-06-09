@@ -177,16 +177,16 @@ int main() {
 	// use plate food index
 
 	auto bottom_bun_task = new Sai2Primitives::JointTask(bottom_bun);
-	bottom_bun_task->_kp = 30.0;
-	bottom_bun_task->_kv = 20.0;
+	bottom_bun_task->_kp = 50.0;
+	bottom_bun_task->_kv = 50.0;
 
 	auto burger_task = new Sai2Primitives::JointTask(burger);
-	burger_task->_kp = 30.0;
-	burger_task->_kv = 20.0;
+	burger_task->_kp = 50.0;
+	burger_task->_kv = 30.0;
 
 	auto top_bun_task = new Sai2Primitives::JointTask(top_bun);
-	top_bun_task->_kp = 30.0;
-	top_bun_task->_kv = 20.0;
+	top_bun_task->_kp = 50.0;
+	top_bun_task->_kv = 10.0;
 
 	bool food_actuate[] = {bottom_bun_actuate, burger_actuate, top_bun_actuate};
 	MatrixXd N_food[] = {N_bottom_bun, N_burger, N_top_bun};
@@ -285,6 +285,11 @@ int main() {
 	double start_time = timer.elapsedTime(); //secs
 	bool fTimerDidSleep = true;
 
+	Matrix3d good_ee_rot;
+	good_ee_rot << 0.703586,  -0.710608, -0.0017762,
+					-0.337309,  -0.336174,   0.879324,
+					-0.625451,  -0.618081,  -0.476221;
+
 	Vector3d slide;
 	slide << 0.0, 0.25, 0.0;
 	// slide << 0.0, 0.28, 0.02;
@@ -293,6 +298,8 @@ int main() {
 	slide_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(slide_angle), -sin(slide_angle),
    					0.0000000, sin(slide_angle), cos(slide_angle);
+
+	slide_ori *= good_ee_rot;
 
    	double y_slide = 0.44;  // based off of backstop location and thickness
 
@@ -303,7 +310,7 @@ int main() {
 	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
    					0.0000000, cos(lift_angle), -sin(lift_angle),
    					0.0000000, sin(lift_angle), cos(lift_angle);
-
+	lift_ori *= good_ee_rot;
 	// Vector3d lift_height;
 	// lift_height << 0.0, 0.05, 0.25;
 	double z_lift = 0.6;
@@ -315,6 +322,7 @@ int main() {
 	relax_ori << 	1.0000000, 0.0000000,  		 0.0000000,
 					0.0000000, cos(relax_angle), -sin(relax_angle),
 					0.0000000, sin(relax_angle), cos(relax_angle);
+	relax_ori *= good_ee_rot;
 
 	Matrix3d flex_ori;
 	// double flex_angle = 0 * M_PI / 180.0;
@@ -417,7 +425,7 @@ int main() {
 					posori_task->_use_velocity_saturation_flag = true;
 					posori_task->_linear_saturation_velocity = 0.3;
 					posori_task->_desired_position(1) = y_slide;
-					posori_task->_desired_orientation *= slide_ori; 
+					posori_task->_desired_orientation = slide_ori; 
 				}
 				else if (task == RESET)
 				{
@@ -431,6 +439,7 @@ int main() {
 						
 						Vector3d r_food = grill_foods[grill_index];
 						cout << "Current Food..." << grill_index << endl << endl;
+						posori_task->_desired_orientation = good_ee_rot;
 					}
 					else 
 					{
@@ -517,7 +526,7 @@ int main() {
 					r_align(2) += 0.11683695 + (0.17 - 0.107) * cos(30 * M_PI / 180) + sim_offset;
 				}
 				posori_task->_desired_position = r_align;
-				posori_task->_desired_orientation *=  relax_ori;
+				posori_task->_desired_orientation = good_ee_rot;
 			}
 			
 			// compute torques
@@ -554,7 +563,7 @@ int main() {
 					task =  LIFT_SPATULA;
 					// z_lift<Matrix>(posori_task->_desired_position, posori_task->_desired_orientation);
 					posori_task->_desired_position(2) = z_lift;
-					posori_task->_desired_orientation *= lift_ori;
+					posori_task->_desired_orientation = lift_ori;
 				} 
 				else if (task == LIFT_SPATULA) 
 				{
@@ -583,7 +592,7 @@ int main() {
 					task = RELAX_WRIST;
 					posori_task->reInitializeTask();
 					// state = POSORI_CONTROLLER;
-					posori_task->_desired_orientation *= relax_ori;
+					posori_task->_desired_orientation = relax_ori;
 				}
 				else if (task == PLATE)
 				{
@@ -591,7 +600,7 @@ int main() {
 					task = RELAX_WRIST;
 					posori_task->reInitializeTask();
 					state = POSORI_CONTROLLER;
-					posori_task->_desired_orientation *=  relax_ori;
+					posori_task->_desired_orientation = relax_ori;
 				}
 				else if (task == RELAX_WRIST)
 				{
@@ -605,10 +614,7 @@ int main() {
 						cout << "\t(Flexing wrist...)" << endl << endl;
 						task = FLEX_WRIST;
 						posori_task->reInitializeTask();
-						Matrix3d good_ee_rot;
-						good_ee_rot << 0.703586,  -0.710608, -0.0017762,
- 										-0.337309,  -0.336174,   0.879324,
- 										-0.625451,  -0.618081,  -0.476221;
+						
 						// posori_task->_desired_orientation *= flex_ori;
 						posori_task->_desired_orientation=good_ee_rot;
 						relax_counter=0;
@@ -667,7 +673,8 @@ int main() {
 					posori_task->_linear_saturation_velocity = 0.3;
 					
 					posori_task->_desired_position(1) = y_slide;
-					posori_task->_desired_orientation *= slide_ori; 
+					posori_task->_desired_orientation = slide_ori; 
+
 				}
 
 
@@ -678,6 +685,7 @@ int main() {
 		for(int f = 0; f < 3; f++)
 		{
 			//if(bottom_bun_actuate)
+
 			if(food_actuate[f] == true)
 			{
 				Sai2Primitives::JointTask * curr_food_task;
@@ -689,8 +697,8 @@ int main() {
 				Vector3d q_food_desired;
 
 				q_food_desired(0) = 0.458 + (f * 0.025);
-				q_food_desired(1) = 0.5-0.05;
-				q_food_desired(2) = -0.45-0.05;
+				q_food_desired(1) = 0.5-0.02;
+				q_food_desired(2) = -0.45-0.02;
 
 				Vector3d r_food;
 				r_food = foods[f];
@@ -704,7 +712,7 @@ int main() {
 					}
 
 				Eigen::VectorXd g_food(6);
-				g_food << -9.81, 0, 0, 0, 0, 0;
+				g_food << 9.81, 0, 0, 0, 0, 0;
 				g_food *= 0.173;
 				
 				if(f == 0)
