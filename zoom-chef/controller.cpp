@@ -25,14 +25,14 @@ using namespace Eigen;
 const string robot_file = "./resources/mmp_panda.urdf";
 // const string spatula_file = "./resources/spatula.urdf";
 // //burger
-// const string burger_file = "./resources/burger.urdf";
-// const string burger_name = "burger"; 
+const string burger_file = "./resources/burger.urdf";
+const string burger_name = "burger"; 
 // bun 1
-// const string bottom_bun_file = "./resources/bottom_bun.urdf";
-// const string bottom_bun_name = "bot_bun"; 
+const string bottom_bun_file = "./resources/bottom_bun.urdf";
+const string bottom_bun_name = "bot_bun"; 
 // // bun 2
-// const string top_bun_file = "./resources/top_bun.urdf";
-// const string top_bun_name = "top_bun"; 
+const string top_bun_file = "./resources/top_bun.urdf";
+const string top_bun_name = "top_bun"; 
 // cheese
 // tomato
 // lettuce
@@ -79,6 +79,9 @@ std::string BURGER_ORIENTATION_KEY;
 std::string BURGER_JOINT_ANGLES_KEY;
 std::string BOTTOM_BUN_POSITION_KEY;
 std::string TOP_BUN_POSITION_KEY;
+std::string BOTTOM_BUN_TORQUES_COMMANDED_KEY;
+std::string BURGER_TORQUES_COMMANDED_KEY;
+std::string TOP_BUN_TORQUES_COMMANDED_KEY;
 // - write
 std::string JOINT_TORQUES_COMMANDED_KEY;
 
@@ -103,9 +106,14 @@ int main() {
 	SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 	// KEY POSITION FOR BURGER
 	BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
-	// KEY POSITION FOR BUNS
-	BOTTOM_BUN_POSITION_KEY = "sai2::cs225a::bottom_bun::sensors::r_bottom_bun";
 	TOP_BUN_POSITION_KEY = "sai2::cs225a::top_bun::sensors::r_top_bun";
+	// KEY POSITION FOR BUNS
+	BOTTOM_BUN_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::bottom_bun";
+
+	BOTTOM_BUN_POSITION_KEY = "sai2::cs225a::bottom_bun::sensors::r_bottom_bun";
+	BURGER_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::burger";
+	TOP_BUN_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::top_bun";
+
 	// start redis client
 	auto redis_client = RedisClient();
 	redis_client.connect();
@@ -121,6 +129,73 @@ int main() {
 	VectorXd initial_q = robot->_q;
 	// cout << initial_q << endl << endl;
 	robot->updateModel();
+	//----------------------------------------***** KITCHEN FOOD ROBOTS *****-----------------------------------------------
+	auto bottom_bun = new Sai2Model::Sai2Model(bottom_bun_file, false);
+	Vector3d r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
+	VectorXd bottom_bun_command_torques = VectorXd::Zero(6);
+
+	auto burger = new Sai2Model::Sai2Model(burger_file, false);
+	Vector3d r_burger = redis_client.getEigenMatrixJSON(BURGER_POSITION_KEY);
+	VectorXd burger_command_torques = VectorXd::Zero(6);
+
+	auto top_bun = new Sai2Model::Sai2Model(top_bun_file, false);
+	Vector3d r_top_bun = redis_client.getEigenMatrixJSON(TOP_BUN_POSITION_KEY);
+	VectorXd top_bun_command_torques = VectorXd::Zero(6);
+
+
+	// for (int i=0; i<3; i++)
+	// {
+	// 	bottom_bun->_q(i)=r_bottom_bun(i);
+
+	// }
+	bottom_bun->updateModel();
+	bool bottom_bun_actuate = false;
+	MatrixXd N_bottom_bun = MatrixXd::Identity(6, 6);
+
+	burger->updateModel();
+	bool burger_actuate = false;
+	MatrixXd N_burger = MatrixXd::Identity(6, 6);
+
+	top_bun->updateModel();
+	bool top_bun_actuate = false;
+	MatrixXd N_top_bun = MatrixXd::Identity(6, 6);
+
+	// auto bottom_bun = new Sai2Model::Sai2Model(bottom_bun_file, false);
+	// Vector3d r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
+	// for (int i=0; i<3; i++)
+	// {
+	// 	bottom_bun->_q(i)=r_bottom_bun(i);
+	// }
+
+	// auto bottom_bun = new Sai2Model::Sai2Model(bottom_bun_file, false);
+	// Vector3d r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
+	// for (int i=0; i<3; i++)
+	// {
+	// 	bottom_bun->_q(i)=r_bottom_bun(i);
+	// }
+	// bool food_actuate[] = {bottom_bun_actuate};
+	// use plate food index
+
+	auto bottom_bun_task = new Sai2Primitives::JointTask(bottom_bun);
+	bottom_bun_task->_kp = 30.0;
+	bottom_bun_task->_kv = 20.0;
+
+	auto burger_task = new Sai2Primitives::JointTask(burger);
+	burger_task->_kp = 30.0;
+	burger_task->_kv = 20.0;
+
+	auto top_bun_task = new Sai2Primitives::JointTask(top_bun);
+	top_bun_task->_kp = 30.0;
+	top_bun_task->_kv = 20.0;
+
+	bool food_actuate[] = {bottom_bun_actuate, burger_actuate, top_bun_actuate};
+	MatrixXd N_food[] = {N_bottom_bun, N_burger, N_top_bun};
+	Sai2Primitives::JointTask * food_task[] = {bottom_bun_task, burger_task, top_bun_task};
+	Sai2Model::Sai2Model * food_robot[] = {bottom_bun, burger, top_bun};
+	// use plate_index
+
+	//----------------------------------------***** KITCHEN FOOD ROBOTS *****-----------------------------------------------
+	
 	// from world urdf
 	Vector3d base_origin;
 	base_origin << 0.0, -0.05, 0.3514;
@@ -155,9 +230,7 @@ int main() {
 	Matrix3d ori_spatula_level = ori_spatula;
 	// spatula_q = redis_client.getEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY);	
 	// burger
-	Vector3d r_bottom_bun = redis_client.getEigenMatrixJSON(BOTTOM_BUN_POSITION_KEY);
-	Vector3d r_top_bun = redis_client.getEigenMatrixJSON(TOP_BUN_POSITION_KEY);
-	Vector3d r_burger = redis_client.getEigenMatrixJSON(BURGER_POSITION_KEY);
+
 	// bun 1
 	// bun 2
 	// cheese	
@@ -201,6 +274,7 @@ int main() {
 	joint_task->_kp = 200.0;
 	joint_task->_kv = 40.0;
 
+
 	VectorXd q_init_desired = initial_q;
 	joint_task->_desired_position = q_init_desired;
 
@@ -210,15 +284,6 @@ int main() {
 	timer.setLoopFrequency(1000); 
 	double start_time = timer.elapsedTime(); //secs
 	bool fTimerDidSleep = true;
-
-				// STRENGTHEN GRIPPER FINGERS
-	 // VectorXd kp_vec(12);
-	 // kp_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5;
-	 // kp_vec *= joint_task->_kp;
-	 // VectorXd kv_vec(12);
-	 // kv_vec << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	 // kv_vec *= joint_task->_kv;
-	 // joint_task->setNonIsotropicGains(kp_vec, kv_vec, VectorXd::Zero(12));
 
 	Vector3d slide;
 	slide << 0.0, 0.25, 0.0;
@@ -232,7 +297,7 @@ int main() {
    	double y_slide = 0.44;  // based off of backstop location and thickness
 
    	Matrix3d lift_ori;
-	double lift_angle = 10 * M_PI / 180.0;
+	double lift_angle = 20 * M_PI / 180.0;
 	// double lift_angle = 6 * M_PI / 180.0;
 
 	lift_ori << 	1.0000000, 0.0000000,  		 0.0000000,
@@ -246,12 +311,13 @@ int main() {
 	drop_food << 0.0, 0.25, 0.53;
 	Matrix3d relax_ori;
 	double relax_angle = -30 * M_PI / 180.0;
+	// relax_ori = lift_ori.transpose();
 	relax_ori << 	1.0000000, 0.0000000,  		 0.0000000,
 					0.0000000, cos(relax_angle), -sin(relax_angle),
 					0.0000000, sin(relax_angle), cos(relax_angle);
 
 	Matrix3d flex_ori;
-	double flex_angle = 0 * M_PI / 180.0;
+	// double flex_angle = 0 * M_PI / 180.0;
 	flex_ori = relax_ori.transpose();
 	
 	Vector3d plate_food;
@@ -521,7 +587,6 @@ int main() {
 				}
 				else if (task == PLATE)
 				{
-					plate_index++;
 					cout << "\t(Relaxing wrist...)" << endl << endl;
 					task = RELAX_WRIST;
 					posori_task->reInitializeTask();
@@ -531,7 +596,7 @@ int main() {
 				else if (task == RELAX_WRIST)
 				{
 					// start counter for relaxing					
-					if(relax_counter < 1000) 
+					if(relax_counter < 1500) 
 					{
 						relax_counter++;
 					} 
@@ -540,15 +605,26 @@ int main() {
 						cout << "\t(Flexing wrist...)" << endl << endl;
 						task = FLEX_WRIST;
 						posori_task->reInitializeTask();
-						posori_task->_desired_orientation *= flex_ori;
+						Matrix3d good_ee_rot;
+						good_ee_rot << 0.703586,  -0.710608, -0.0017762,
+ 										-0.337309,  -0.336174,   0.879324,
+ 										-0.625451,  -0.618081,  -0.476221;
+						// posori_task->_desired_orientation *= flex_ori;
+						posori_task->_desired_orientation=good_ee_rot;
 						relax_counter=0;
 					}
 				}
 				else if (task == FLEX_WRIST)
 				{
-					
-					grill_index++;
-					cout << "Grill index#" << grill_index << endl << endl;
+					if(grill_index < 3) 
+					{
+						grill_index++;
+					} else if (plate_index <3) 
+					{
+						food_actuate[plate_index] = true;
+						plate_index++;
+					}
+
 					if(grill_index < 3)
 					{
 						state = JOINT_CONTROLLER;
@@ -563,6 +639,16 @@ int main() {
 						cout << "Aligning for plate#" << plate_index << "..." << endl << endl;
 						task = ALIGN;
 						posori_task->reInitializeTask();
+						//if(plate_index == 1){
+						//	bottom_bun_actuate = true;
+						//}
+						
+					}
+					else if (plate_index == 3)
+					{
+						state = JOINT_CONTROLLER;
+						task = IDLE;
+						// food_actuate[plate_index-1] = true;
 					}
 				}
 				else if (task == ALIGN)
@@ -572,7 +658,7 @@ int main() {
 					{
 						cout << "Sliding for Grill Food " << grill_index << "..." << endl << endl;
 					} 
-					if (grill_index == 3 && plate_index < 3)
+					else if (plate_index < 3)
 					{
 						cout << "Sliding for Plate Food " << plate_index << "..." << endl << endl;
 					}						
@@ -587,14 +673,71 @@ int main() {
 
 			} // goal reached if-statement
 		}// posori if-statement
-
-
-		if(controller_counter % 5000 == 0 && VERBOSE)
+//-----------------------------------------------*******STACKING FOOD CONTROL********---------------------------------------------------------
+		// //if(food_actuate[plate_index])
+		for(int f = 0; f < 3; f++)
 		{
-			cout << "gripper state = " << gripper_state << endl;
-			cout << "ee_pos = " << ee_pos.transpose() << endl;
-			cout << "ee_rot = " << endl << ee_rot << endl;
+			//if(bottom_bun_actuate)
+			if(food_actuate[f] == true)
+			{
+				Sai2Primitives::JointTask * curr_food_task;
+				curr_food_task = food_task[f];
+
+				N_bottom_bun.setIdentity();
+				curr_food_task->updateTaskModel(N_bottom_bun);
+
+				Vector3d q_food_desired;
+
+				q_food_desired(0) = 0.458 + (f * 0.025);
+				q_food_desired(1) = 0.5-0.05;
+				q_food_desired(2) = -0.45-0.05;
+
+				Vector3d r_food;
+				r_food = foods[f];
+				food_robot[f]->_q(0) = r_food(2);
+				food_robot[f]->_q(1) = r_food(1);
+				food_robot[f]->_q(2) = r_food(0);
+
+					for(int i = 0; i < 3; i++)
+					{
+						curr_food_task->_desired_position(i) = q_food_desired(i);
+					}
+
+				Eigen::VectorXd g_food(6);
+				g_food << -9.81, 0, 0, 0, 0, 0;
+				g_food *= 0.173;
+				
+				if(f == 0)
+				{
+					curr_food_task->computeTorques(bottom_bun_command_torques);
+					redis_client.setEigenMatrixJSON(BOTTOM_BUN_TORQUES_COMMANDED_KEY, bottom_bun_command_torques + g_food);
+					if(controller_counter % 10000 == 0){
+					cout << "bottom_bun_actuate = " << bottom_bun_actuate << "... bottom_bun_command_torques = " << bottom_bun_command_torques.transpose() << endl << endl;
+					}
+				}
+
+				else if(f == 1)
+				{
+					curr_food_task->computeTorques(burger_command_torques);
+					redis_client.setEigenMatrixJSON(BURGER_TORQUES_COMMANDED_KEY, burger_command_torques + g_food);
+					if(controller_counter % 10000 == 0){
+					cout << "burger_actuate = " << burger_actuate << "... burger_command_torques = " << burger_command_torques.transpose() << endl << endl;
+					}
+				}
+				else if(f == 2)
+				{
+					curr_food_task->computeTorques(top_bun_command_torques);
+					redis_client.setEigenMatrixJSON(TOP_BUN_TORQUES_COMMANDED_KEY, top_bun_command_torques + g_food);
+					if(controller_counter % 10000 == 0){
+					cout << "top_bun_actuate = " << top_bun_actuate << "... top_bun_command_torques = " << top_bun_command_torques.transpose() << endl << endl;
+					}
+				}
+			}
+			
+			
 		}
+			
+//-----------------------------------------------*******STACKING FOOD CONTROL********---------------------------------------------------------
 		// send to redis
 		redis_client.setEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY, command_torques);
 

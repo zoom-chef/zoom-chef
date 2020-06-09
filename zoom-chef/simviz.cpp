@@ -49,8 +49,8 @@ const std::string SPATULA_POSITION_KEY = "sai2::cs225a::spatula::sensors::r_spat
 const std::string SPATULA_ORIENTATION_KEY = "sai2::cs225a::spatula::sensors::ori_spatula";
 const std::string SPATULA_JOINT_ANGLES_KEY = "sai2::cs225a::spatula::sensors::spatula_q";
 const std::string BURGER_POSITION_KEY = "sai2::cs225a::burger::sensors::r_burger";
-const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
-const std::string BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
+// const std::string BURGER_ORIENTATION_KEY = "sai2::cs225a::burger::sensors::q_burger";
+// const std::string BURGER_JOINT_ANGLES_KEY = "sai2::cs225a::burger::sensors::burger_q";
 const std::string TOMATO_POSITION_KEY = "sai2::cs225a::tomato::sensors::r_tomato";
 const std::string CHEESE_POSITION_KEY = "sai2::cs225a::cheese::sensors::r_cheese";
 const std::string LETTUCE_POSITION_KEY = "sai2::cs225a::lettuce::sensors::r_lettuce";
@@ -59,7 +59,9 @@ const std::string BOTTOM_BUN_POSITION_KEY = "sai2::cs225a::bottom_bun::sensors::
 
 // - read
 const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::fgc";
-
+const std::string BOTTOM_BUN_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::bottom_bun";
+const std::string BURGER_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::burger";
+const std::string TOP_BUN_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::actuators::top_bun";
 RedisClient redis_client;
 
 // simulation function prototype
@@ -163,7 +165,7 @@ int main() {
 	// get position and orientation of burger from sim
 	//set initial position of burger in world
 	Eigen::Vector3d r_burger;
-	Eigen::Matrix3d q_burger;
+	// Eigen::Matrix3d q_burger;
 	// get position of all other objects in the world
 	Eigen::Vector3d r_tomato;
 	Eigen::Vector3d r_cheese;
@@ -176,7 +178,7 @@ int main() {
 	spatula->updateModel();
 
 	burger->positionInWorld(r_burger, "link6", Vector3d(0, 0, 0));
-	burger->rotationInWorld(q_burger, "link6");
+	// burger->rotationInWorld(q_burger, "link6");
 	burger->updateModel();
 
 	tomato->positionInWorld(r_tomato, "link6", Vector3d(0, 0, 0));
@@ -236,7 +238,7 @@ int main() {
 	redis_client.setEigenMatrixJSON(JOINT_ANGLES_KEY, robot->_q); 
 	redis_client.setEigenMatrixJSON(JOINT_VELOCITIES_KEY, robot->_dq); 
 	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q); 
-	redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, burger->_q); 
+	// redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, burger->_q); 
 
 	thread sim_thread(simulation, robot, spatula, burger, tomato, cheese, lettuce, top_bun, bottom_bun, sim, ui_force_widget);
 	
@@ -381,6 +383,16 @@ void simulation(Sai2Model::Sai2Model* robot,
 
 
 	int dof = robot->dof();
+
+	VectorXd bottom_bun_command_torques = VectorXd::Zero(6);
+	redis_client.setEigenMatrixJSON(BOTTOM_BUN_TORQUES_COMMANDED_KEY, bottom_bun_command_torques);
+
+	VectorXd burger_command_torques = VectorXd::Zero(6);
+	redis_client.setEigenMatrixJSON(BURGER_TORQUES_COMMANDED_KEY, burger_command_torques);
+
+	VectorXd top_bun_command_torques = VectorXd::Zero(6);
+	redis_client.setEigenMatrixJSON(TOP_BUN_TORQUES_COMMANDED_KEY, top_bun_command_torques);
+
 	VectorXd command_torques = VectorXd::Zero(dof);
 	redis_client.setEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY, command_torques);
 
@@ -414,15 +426,15 @@ void simulation(Sai2Model::Sai2Model* robot,
 						0.0, 0.0, 1.0;
 
 	Eigen::Vector3d r_burger;
-	Eigen::Matrix3d q_burger_local;
-	Eigen::Matrix3d q_burger;
+	// Eigen::Matrix3d q_burger_local;
+	// Eigen::Matrix3d q_burger;
 	Eigen::Vector3d burger_offset;
 
 	burger_offset << 0.5, 0.5, 0.5;
-	Matrix3d burger_rot_init;
-	burger_rot_init << 1.0, 0.0, 0.0, 
-						0.0, 1.0, 0.0,
-						0.0, 0.0, 1.0;
+	// Matrix3d burger_rot_init;
+	// burger_rot_init << 1.0, 0.0, 0.0, 
+	// 					0.0, 1.0, 0.0,
+	// 					0.0, 0.0, 1.0;
 
 
 	Eigen::Vector3d r_bottom_bun = Vector3d::Zero();
@@ -456,6 +468,10 @@ void simulation(Sai2Model::Sai2Model* robot,
 		// g.setZero();
 		// read arm torques from redis and apply to simulated robot
 		command_torques = redis_client.getEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY);
+		bottom_bun_command_torques = redis_client.getEigenMatrixJSON(BOTTOM_BUN_TORQUES_COMMANDED_KEY);
+		burger_command_torques = redis_client.getEigenMatrixJSON(BURGER_TORQUES_COMMANDED_KEY);
+		top_bun_command_torques = redis_client.getEigenMatrixJSON(TOP_BUN_TORQUES_COMMANDED_KEY);
+
 		
 		ui_force_widget->getUIForce(ui_force);
 		ui_force_widget->getUIJointTorques(ui_force_command_torques);
@@ -464,6 +480,12 @@ void simulation(Sai2Model::Sai2Model* robot,
 			sim->setJointTorques(robot_name, command_torques + ui_force_command_torques + g);
 		else
 			sim->setJointTorques(robot_name, command_torques + g);
+
+		sim->setJointTorques(bottom_bun_name, bottom_bun_command_torques);
+		sim->setJointTorques(burger_name, burger_command_torques);
+		sim->setJointTorques(top_bun_name, top_bun_command_torques);
+
+
 
 		// integrate forward
 
@@ -493,10 +515,10 @@ void simulation(Sai2Model::Sai2Model* robot,
 		burger->updateModel();
 
 		burger->positionInWorld(r_burger, "link6");
-		burger->rotationInWorld(q_burger_local, "link6");
+		// burger->rotationInWorld(q_burger_local, "link6");
 		r_burger += burger_offset;
-		q_burger = q_burger_local * burger_rot_init;
-		burger->updateModel();
+		// q_burger = q_burger_local * burger_rot_init;
+		// burger->updateModel();
 
 		// update graphics and positions for all other objects
 		sim->getJointPositions(tomato_name, tomato->_q);
@@ -536,8 +558,8 @@ void simulation(Sai2Model::Sai2Model* robot,
 		redis_client.setEigenMatrixJSON(SPATULA_ORIENTATION_KEY, ori_spatula);
 		redis_client.setEigenMatrixJSON(SPATULA_JOINT_ANGLES_KEY, spatula->_q);
 		redis_client.setEigenMatrixJSON(BURGER_POSITION_KEY, r_burger);
-		redis_client.setEigenMatrixJSON(BURGER_ORIENTATION_KEY, q_burger);
-		redis_client.setEigenMatrixJSON(BURGER_JOINT_ANGLES_KEY, burger->_q);
+		// redis_client.setEigenMatrixJSON(BURGER_ORIENTATION_KEY, q_burger);
+		// redis_client.setEigenMatrixJSON(BURGER_JOINT_ANGLES_KEY, burger->_q);
 		redis_client.setEigenMatrixJSON(TOMATO_POSITION_KEY, r_tomato);
 		redis_client.setEigenMatrixJSON(CHEESE_POSITION_KEY, r_cheese);
 		redis_client.setEigenMatrixJSON(LETTUCE_POSITION_KEY, r_lettuce);
